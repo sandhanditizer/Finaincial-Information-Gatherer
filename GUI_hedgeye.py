@@ -3,7 +3,8 @@ from interface import summonHedgeyeData
 from customtkinter import CTkFrame, CTkLabel, CTkButton, CTkEntry, CTkComboBox, END
 from tkinter import ttk
 from datetime import datetime
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
+import matplotlib.dates as mdates
 from threading import Thread
 import matplotlib.pyplot as plt
 
@@ -204,17 +205,19 @@ class HedgeyePage(CTkFrame):
         initrow = 4
         initcol = 0
         
+        plt.rcParams['font.size'] = 12
+        
         # Graph label
-        self.graphLable = CTkEntry(self, font=('', 20), justify='center', height=40)
+        self.graphLable = CTkEntry(self, font=('', 20), justify='right', height=40)
         self.graphLable.grid(row=(initrow - 1), column=initcol, columnspan=6, sticky='ew', padx=10)
-        self.graphLable.insert(END, 'Trade Price')    
+        self.graphLable.insert(END, 'Trade Price                  ')    
         
         data = summonHedgeyeData(ticker=ticker)
 
-        fig = plt.Figure(figsize=(8, 6))
+        fig = plt.Figure(figsize=(8, 6), tight_layout=True)
         ax = fig.add_subplot(111)
-
-        dates = [d['Date'] for d in data[0:-1]] # Exclude 10s/2s data
+        
+        dates = [datetime.strptime(d['Date'], '%Y-%m-%d') for d in data[:-1]] # Exclude 10s/2s data
         y1 = [d['Buy'] for d in data[0:-1]]
         y2 = [d['Sell'] for d in data[0:-1]]
         y3 = [d['Close'] for d in data[0:-1]]
@@ -227,47 +230,61 @@ class HedgeyePage(CTkFrame):
         index_starts = []
 
         for i in range(1, len(dates)):
-            diff = (datetime.strptime(dates[i], '%Y-%m-%d') - datetime.strptime(dates[i - 1], '%Y-%m-%d')).days
+            diff = (dates[i] - dates[i - 1]).days
             if diff >= 7:
                 index_ends.append(i - 1)
                 index_starts.append(i)
 
         
         if len(index_ends) == 0:
-            ax.plot(dates, y1, color='green', label='Buy')
-            ax.plot(dates, y2, color='red', label='Sell')
-            ax.plot(dates, y3, color='black', label='Close', linestyle='--')
+            ax.plot_date(dates, y1, 'g^', label='Buy', linestyle='-')
+            ax.plot_date(dates, y2, 'rv', label='Sell', linestyle='-')
+            ax.plot_date(dates, y3, color='black', label='Close', linestyle='--', fmt='d')
             
         else:
-            ax.plot(dates[0:index_ends[0]], y1[0:index_ends[0]], color='green', label='Buy')
-            ax.plot(dates[0:index_ends[0]], y2[0:index_ends[0]], color='red', label='Sell')
-            ax.plot(dates[0:index_ends[0]], y3[0:index_ends[0]], color='black', label='Close', linestyle='--')
+            # First line segment
+            ax.plot_date(dates[0:index_ends[0]], y1[0:index_ends[0]], 'g^', label='Buy', linestyle='-')
+            ax.plot_date(dates[0:index_ends[0]], y2[0:index_ends[0]], 'rv', label='Sell', linestyle='-')
+            ax.plot_date(dates[0:index_ends[0]], y3[0:index_ends[0]], color='black', label='Close', linestyle='--', fmt='d')
         
+            # Any line segment after the first and before the final segment
             for i in range(1, len(index_ends)):
-                ax.plot(dates[index_starts[i-1]:index_ends[i]], y1[index_starts[i-1]:index_ends[i]], color='green')
-                ax.plot(dates[index_starts[i-1]:index_ends[i]], y2[index_starts[i-1]:index_ends[i]], color='red', label='Sell')
-                ax.plot(dates[index_starts[i-1]:index_ends[i]], y3[index_starts[i-1]:index_ends[i]], color='black', label='Close', linestyle='--')
+                ax.plot_date(dates[index_starts[i-1]:index_ends[i]], y1[index_starts[i-1]:index_ends[i]], 'g^', linestyle='-')
+                ax.plot_date(dates[index_starts[i-1]:index_ends[i]], y2[index_starts[i-1]:index_ends[i]], 'rv', linestyle='-')
+                ax.plot_date(dates[index_starts[i-1]:index_ends[i]], y3[index_starts[i-1]:index_ends[i]], color='black', label='Close', linestyle='--', fmt='d')
                 
-            ax.plot(dates[index_starts[-1]:-1], y1[index_starts[-1]:-1], color='green')
-            ax.plot(dates[index_starts[-1]:-1], y2[index_starts[-1]:-1], color='red')
-            ax.plot(dates[index_starts[-1]:-1], y3[index_starts[-1]:-1], color='black', linestyle='--')
+            # Final segment
+            ax.plot_date(dates[index_starts[-1]:-1], y1[index_starts[-1]:-1], 'g^', linestyle='-')
+            ax.plot_date(dates[index_starts[-1]:-1], y2[index_starts[-1]:-1], 'rv', linestyle='-')
+            ax.plot_date(dates[index_starts[-1]:-1], y3[index_starts[-1]:-1], color='black', linestyle='--', fmt='d')
         
         # ------------------------------------------------------------------------------------------------
 
-        
-        # Set x-ticks to every other date
-        xticks = [dates[i] for i in range(0, len(dates), 2)]
-        ax.set_xticks(xticks)
-        ax.set_xticklabels(xticks)
+        for tick in ax.get_xticklabels():
+            tick.set_rotation(40)
+            
+        ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+        ax.autoscale_view()
 
         ax.set_xlabel('Date')
         ax.set_ylabel('Price')
         ax.legend()
-        ax.grid(linestyle=':')
+        ax.grid(axis='y')
 
-        # Rotate the dates on the x-axis
-        fig.autofmt_xdate(rotation=55)
+        # Create the canvas and draw the plot
+        canvas = FigureCanvasTkAgg(fig, master=self)
+        canvas.draw()
 
-        self.fcan = FigureCanvasTkAgg(figure=fig, master=self)
-        self.fcan.draw()
-        self.fcan.get_tk_widget().grid(row=initrow, column=initcol, columnspan=6, rowspan=12, sticky='nsew', padx=10)
+        # Create the toolbar and add it to the window
+        toolbar = CustomToolbar(canvas, self)
+        toolbar.update()
+        toolbar.grid(row=initrow - 1, column=initcol, columnspan=3, sticky='w', padx=20)
+              
+        canvas.get_tk_widget().grid(row=initrow, column=initcol, columnspan=6, rowspan=12, sticky='nsew', padx=10)
+        
+        
+class CustomToolbar(NavigationToolbar2Tk):
+    def __init__(self, canvas_, parent_):
+        super(CustomToolbar, self).__init__(canvas_, parent_, pack_toolbar=False)
+        self.config(background='gray20', highlightbackground='gray20', highlightcolor='gray20')
+        self._message_label.config(foreground='white', background='gray20')

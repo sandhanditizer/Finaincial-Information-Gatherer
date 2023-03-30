@@ -107,7 +107,6 @@ def compute_om_delta(date, ticker, close):
         old_data = Hedgeye.getData(date=new_date, ticker=ticker)
         
         if old_data and old_data.close != 0:
-            print(old_data.close, '\n\n')
             return round(((close - old_data.close) / old_data.close) * 100, 2)
         
         if old_data and old_data.close == 0:

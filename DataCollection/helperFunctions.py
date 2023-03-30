@@ -11,7 +11,7 @@ def formatDate(date):
         date = date_match.group()
     
     
-    formats = ['%B %d, %Y', '%A, %B %d, %Y', '%m/%d/%y']
+    formats = ['%B %d, %Y', '%A, %B %d, %Y', '%m/%d/%y', '%b %d, %Y']
     dt = None
     for f in formats:
         try:

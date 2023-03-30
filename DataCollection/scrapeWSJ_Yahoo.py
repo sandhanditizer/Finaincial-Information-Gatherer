@@ -50,15 +50,48 @@ def newestNasdaqNyseData():
         # Waits a maximum of 30 sec for the website to load correctly
         wait = WebDriverWait(close_driver, 30) 
         
-        NYSE_CLOSE_TARGET_URL = 'https://finance.yahoo.com/quote/^NYA?p=^NYA&.tsrc=fin-srch'
+        NYSE_CLOSE_TARGET_URL = 'https://finance.yahoo.com/quote/%5ENYA/history?p=%5ENYA'
         close_driver.get(NYSE_CLOSE_TARGET_URL)
+               
+        row = 1
+        while True: # Search for the correct close data given the date from the WSJ market diaries page
+            xpath = f'//*[@id="Col1-1-HistoricalDataTable-Proxy"]/section/div[2]/table/tbody/tr[{row}]/td[1]/span'
+            date = wait.until(expected_conditions.visibility_of_element_located((By.XPATH, xpath))).get_attribute('textContent')
+            if formatDate(date) != data['Date']:
+                row += 1
+            else:
+                break
         
-        data['NYSE Close'] = wait.until(expected_conditions.visibility_of_element_located((By.XPATH, '//*[@id="quote-header-info"]/div[3]/div[1]/div/fin-streamer[3]/span'))).get_attribute('textContent')
+        xpath_new_close = f'//*[@id="Col1-1-HistoricalDataTable-Proxy"]/section/div[2]/table/tbody/tr[{row}]/td[5]/span'
+        new_close = wait.until(expected_conditions.visibility_of_element_located((By.XPATH, xpath_new_close))).get_attribute('textContent')
+        
+        xpath_old_close = f'//*[@id="Col1-1-HistoricalDataTable-Proxy"]/section/div[2]/table/tbody/tr[{row + 1}]/td[5]/span'
+        old_close = wait.until(expected_conditions.visibility_of_element_located((By.XPATH, xpath_old_close))).get_attribute('textContent')
+        
+        data['NYSE Close'] = round(((float(new_close.replace(',', '')) - float(old_close.replace(',', ''))) / float(old_close.replace(',', ''))) * 100, 2)
+        
+        # -------------------------
 
         NASDAQ_CLOSE_TARGET_URL = 'https://finance.yahoo.com/quote/%5EIXIC/history?p=%5EIXIC'
         close_driver.get(NASDAQ_CLOSE_TARGET_URL)
         
-        data['NASDAQ Close'] = wait.until(expected_conditions.visibility_of_element_located((By.XPATH, '//*[@id="quote-header-info"]/div[3]/div[1]/div/fin-streamer[3]/span'))).get_attribute('textContent')
+        row = 1
+        while True: # Search for the correct close data given the date from the WSJ market diaries page
+            xpath = f'//*[@id="Col1-1-HistoricalDataTable-Proxy"]/section/div[2]/table/tbody/tr[{row}]/td[1]/span'
+            date = wait.until(expected_conditions.visibility_of_element_located((By.XPATH, xpath))).get_attribute('textContent')
+            if formatDate(date) != data['Date']:
+                row += 1
+            else:
+                break
+        
+        xpath_new_close = f'//*[@id="Col1-1-HistoricalDataTable-Proxy"]/section/div[2]/table/tbody/tr[{row}]/td[5]/span'
+        new_close = wait.until(expected_conditions.visibility_of_element_located((By.XPATH, xpath_new_close))).get_attribute('textContent')
+        
+        xpath_old_close = f'//*[@id="Col1-1-HistoricalDataTable-Proxy"]/section/div[2]/table/tbody/tr[{row + 1}]/td[5]/span'
+        old_close = wait.until(expected_conditions.visibility_of_element_located((By.XPATH, xpath_old_close))).get_attribute('textContent')
+        
+        data['NASDAQ Close'] = round(((float(new_close.replace(',', '')) - float(old_close.replace(',', ''))) / float(old_close.replace(',', ''))) * 100, 2)
+        
     except:
         return 'Cannot scrape NASDAQ or NYSE close data from Yahoo Finance Quote pages.'
     finally: 
