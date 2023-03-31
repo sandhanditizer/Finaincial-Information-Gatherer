@@ -53,7 +53,9 @@ class MainApp(CTk):
         for p in self.pages.values():
             p.grid_forget()
         
+        self.title(page)
         self.pages[page].reloadPage() # Refresh that page with todays data
+        self.pages[page].progress_bar.grid_forget()
         self.pages[page].grid(row=0, column=0, sticky='nsew')
 
 

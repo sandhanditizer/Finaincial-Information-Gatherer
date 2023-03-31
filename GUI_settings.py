@@ -16,11 +16,11 @@ class Settings(CTkFrame):
         self.new_password = ''
         
         # Shows current username
-        text1 = CTkLabel(self.top_level, text=f'Current username:  {current_username}', font=('bold', 16), text_color='white')
-        text1.grid(row=1, column=0, columnspan=2, padx=10, pady=10, sticky='w')
+        username_label1 = CTkLabel(self.top_level, text=f'Current username:  {current_username}', font=('bold', 16), text_color='white')
+        username_label1.grid(row=1, column=0, columnspan=2, padx=10, pady=10, sticky='w')
         
-        text2 = CTkLabel(self.top_level, text=f'Edit username: ', font=('bold', 16), text_color='white')
-        text2.grid(row=2, column=0, columnspan=2, padx=10, pady=10, sticky='w')
+        username_label2 = CTkLabel(self.top_level, text=f'Edit username: ', font=('bold', 16), text_color='white')
+        username_label2.grid(row=2, column=0, columnspan=2, padx=10, pady=10, sticky='w')
         
         # Entry box that allows to change username
         self.entry1 = CTkEntry(self.top_level, placeholder_text=f'Type here', justify='center', font=('', 14), width=235)
@@ -28,11 +28,11 @@ class Settings(CTkFrame):
         self.entry1.grid(row=2, column=1, padx=10, pady=10, sticky='e')
         
         # Shows current password
-        text3 = CTkLabel(self.top_level, text=f'Current password:  {current_password}', font=('bold', 16), text_color='white')
-        text3.grid(row=3, column=0, columnspan=2, padx=10, pady=10, sticky='w')
+        password_label1 = CTkLabel(self.top_level, text=f'Current password:  {current_password}', font=('bold', 16), text_color='white')
+        password_label1.grid(row=3, column=0, columnspan=2, padx=10, pady=10, sticky='w')
         
-        text4 = CTkLabel(self.top_level, text=f'Edit password: ', font=('bold', 16), text_color='white')
-        text4.grid(row=4, column=0, columnspan=2, padx=10, pady=10, sticky='w')
+        password_label2 = CTkLabel(self.top_level, text=f'Edit password: ', font=('bold', 16), text_color='white')
+        password_label2.grid(row=4, column=0, columnspan=2, padx=10, pady=10, sticky='w')
         
         # Entry box that allows to change password
         self.entry2 = CTkEntry(self.top_level, placeholder_text=f'Type here', justify='center', font=('', 14), width=235)

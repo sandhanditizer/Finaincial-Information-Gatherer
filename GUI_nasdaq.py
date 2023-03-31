@@ -1,6 +1,6 @@
 from GUI_popup import Popup
 from interface import summonNasdaqData
-from customtkinter import CTkFrame, CTkLabel, CTkButton, CTkEntry, END
+from customtkinter import CTkFrame, CTkLabel, CTkButton, CTkEntry, CTkProgressBar, END
 from tkinter import ttk
 from datetime import datetime
 from threading import Thread
@@ -14,14 +14,15 @@ class NASDAQPage(CTkFrame):
         
         # Class global
         self.data = None
+        self.progress_bar = CTkProgressBar(self, mode='indeterminate', width=150)
         
         # Manual configures to get spacing right
         self.grid_rowconfigure(2, minsize=25)
         self.grid_columnconfigure(3, minsize=100)
         
         # Page specifier
-        pageTitle = CTkLabel(self, text='NASDAQ Power Play Results', font=('', 40))
-        pageTitle.grid(row=0, column=0, columnspan=5, sticky='w', pady=25, padx=10)
+        page_title = CTkLabel(self, text='Power Play Results', font=('', 40, 'bold'))
+        page_title.grid(row=0, column=0, columnspan=3, sticky='w', pady=25, padx=10)
         
         # Reload data button
         button1 = CTkButton(self, text='Reload', command=self.reloadThread, font=('', 16))
@@ -35,12 +36,12 @@ class NASDAQPage(CTkFrame):
         button3.grid(row=1, column=2, padx=10, pady=10, sticky='nsew')
         
         # Check alerts button
-        button4 = CTkButton(self, text='Alerts', command=self.checkAlerts, font=('', 16), width=50)
+        button4 = CTkButton(self, text='Alerts', command=self.checkAlerts, font=('', 16), width=80)
         button4.grid(row=0, column=4, padx=10, pady=10, sticky='e')
         
         # Date
-        dateLable = CTkLabel(self, text='Date:', font=('', 17))
-        dateLable.grid(row=1, column=3, padx=10, pady=10, sticky='e')
+        date_lable = CTkLabel(self, text='Date:', font=('', 17))
+        date_lable.grid(row=1, column=3, padx=10, pady=10, sticky='e')
                 
         
 
@@ -49,6 +50,9 @@ class NASDAQPage(CTkFrame):
         
         thread = Thread(target=self.master.initiateWebScrape, args=('NASDAQ',))
         thread.start()
+        
+        self.progress_bar.grid(row=0, column=2, columnspan=3)
+        self.progress_bar.start()
         
 
     def gotoNYSE(self):
@@ -115,7 +119,7 @@ class NASDAQPage(CTkFrame):
     def dateAction(self, _):
         """Changes the page accordingly when choosing a different date to look at.\n"""
         
-        date = self.dateEntry.get()
+        date = self.date_entry.get()
         
         try:
             datetime.strptime(date, '%Y-%m-%d')
@@ -128,9 +132,9 @@ class NASDAQPage(CTkFrame):
         """Draws the date displayed in the entry box in the date selector.\n"""
         
         # Date in entry box
-        self.dateEntry = CTkEntry(self, placeholder_text=f'{date}')
-        self.dateEntry.bind('<Return>', self.dateAction)
-        self.dateEntry.grid(row=1, column=4, padx=10, pady=10, sticky='w')
+        self.date_entry = CTkEntry(self, placeholder_text=f'{date}')
+        self.date_entry.bind('<Return>', self.dateAction)
+        self.date_entry.grid(row=1, column=4, padx=10, pady=10, sticky='w')
         
         
     def drawTable(self, data):
@@ -145,9 +149,9 @@ class NASDAQPage(CTkFrame):
         initcol = 0
         
         # Table label
-        self.tableLable = CTkEntry(self, font=('', 20), justify='center', height=40)
-        self.tableLable.grid(row=(initrow - 1), column=initcol, columnspan=6, sticky='ew', padx=10, pady=10)
-        self.tableLable.insert(END, 'Volumetric Data') 
+        self.table_lable = CTkEntry(self, font=('', 20), justify='center', height=40)
+        self.table_lable.grid(row=(initrow - 1), column=initcol, columnspan=6, sticky='ew', padx=10, pady=10)
+        self.table_lable.insert(END, 'Volumetric Data') 
           
         labels = ['Close (%)', 
             'Advancing Volume', 'Declining Volume', 

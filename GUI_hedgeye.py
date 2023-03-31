@@ -1,7 +1,7 @@
 from GUI_popup import Popup
 from GUI_settings import Settings
 from interface import summonHedgeyeData
-from customtkinter import CTkFrame, CTkLabel, CTkButton, CTkEntry, CTkComboBox, END
+from customtkinter import CTkFrame, CTkLabel, CTkButton, CTkEntry, CTkComboBox, CTkProgressBar, END
 from tkinter import ttk
 from datetime import datetime
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
@@ -17,14 +17,15 @@ class HedgeyePage(CTkFrame):
         # Class globals
         self.data = None
         self.tickers = []
+        self.progress_bar = CTkProgressBar(self, mode='indeterminate', width=200)
         
         # Manual configures to get spacing right
         self.grid_rowconfigure(2, minsize=25)
         self.grid_columnconfigure(7, minsize=350)
         
         # Page specifier
-        pageTitle = CTkLabel(self, text="Hedgeye's Daily Data", font=('', 40))
-        pageTitle.grid(row=0, column=0, columnspan=5, sticky='w', pady=25, padx=10)
+        page_title = CTkLabel(self, text="Daily Data", font=('', 40, 'bold'))
+        page_title.grid(row=0, column=0, columnspan=2, sticky='w', pady=25, padx=10)
         
         # Reload data button
         button1 = CTkButton(self, text='Reload', command=self.reloadThread, font=('', 16))
@@ -38,16 +39,16 @@ class HedgeyePage(CTkFrame):
         button3.grid(row=1, column=1, padx=10, pady=10, sticky='nsew')
         
         # Open settings
-        button4 = CTkButton(self, text='Settings', command=self.openSettings, font=('', 16))
+        button4 = CTkButton(self, text='Settings', command=self.openSettings, font=('', 16), width=80)
         button4.grid(row=0, column=7, padx=10, pady=10, sticky='e')
         
         # Date
-        dateLable = CTkLabel(self, text='Date:', font=('', 17))
-        dateLable.grid(row=1, column=3, padx=10, pady=10, sticky='e')
+        date_lable = CTkLabel(self, text='Date:', font=('', 17))
+        date_lable.grid(row=1, column=3, padx=10, pady=10, sticky='e')
         
         # Ticker
-        tickerLable = CTkLabel(self, text='Ticker:', font=('', 17))
-        tickerLable.grid(row=1, column=5, padx=10, pady=10, sticky='e')
+        ticker_lable = CTkLabel(self, text='Ticker:', font=('', 17))
+        ticker_lable.grid(row=1, column=5, padx=10, pady=10, sticky='e')
                 
             
 
@@ -56,6 +57,9 @@ class HedgeyePage(CTkFrame):
         
         thread = Thread(target=self.master.initiateWebScrape, args=('Hedgeye',))
         thread.start()
+        
+        self.progress_bar.grid(row=0, column=1, columnspan=2)
+        self.progress_bar.start()
 
 
     def gotoNASDAQ(self):
@@ -108,19 +112,19 @@ class HedgeyePage(CTkFrame):
             choice (string, optional): Ticker selection. Defaults to None. Refer to the `tickerAction` function.\n
         """
         # Date in entry box
-        self.dateEntry = CTkEntry(self, placeholder_text=f'{date}', justify='center', font=('', 14))
-        self.dateEntry.bind('<Return>', self.dateAction)
-        self.dateEntry.grid(row=1, column=4, pady=10, sticky='w')
+        self.date_entry = CTkEntry(self, placeholder_text=f'{date}', justify='center', font=('', 14))
+        self.date_entry.bind('<Return>', self.dateAction)
+        self.date_entry.grid(row=1, column=4, pady=10, sticky='w')
         
         # Ticker in dropdown box
-        self.tickerDropDown = CTkComboBox(self, values=tickers, command=self.tickerAction, width=100, justify='center', font=('', 14))
+        self.ticker_drop_down = CTkComboBox(self, values=tickers, command=self.tickerAction, width=100, justify='center', font=('', 14))
         if choice:
-            self.tickerDropDown.set(choice)
-        self.tickerDropDown.grid(row=1, column=6, pady=10, sticky='w')
+            self.ticker_drop_down.set(choice)
+        self.ticker_drop_down.grid(row=1, column=6, pady=10, sticky='w')
         
         # Description to the right of ticker dropdown
-        self.descriptionLable = CTkLabel(self, text=description, font=('', 16))
-        self.descriptionLable.grid(row=1, column=7, columnspan=2, pady=10, sticky='ew')
+        self.description_lable = CTkLabel(self, text=description, font=('', 16))
+        self.description_lable.grid(row=1, column=7, columnspan=2, pady=10, sticky='ew')
         
         
     def findDictByTick(self, dlist, ticker):
@@ -148,7 +152,7 @@ class HedgeyePage(CTkFrame):
     def dateAction(self, _):
         """Changes the page accordingly when choosing a different date to look at.\n"""
         
-        date = self.dateEntry.get()
+        date = self.date_entry.get()
         
         try:
             datetime.strptime(date, '%Y-%m-%d')
@@ -169,9 +173,9 @@ class HedgeyePage(CTkFrame):
         initcol = 6
         
         # Table label   
-        self.tableLable = CTkEntry(self, font=('', 20), justify='center', height=40)
-        self.tableLable.grid(row=(initrow - 1), column=initcol, columnspan=2, sticky='ew', pady=10)
-        self.tableLable.insert(END, 'Range and Performance Data') 
+        self.table_lable = CTkEntry(self, font=('', 20), justify='center', height=40)
+        self.table_lable.grid(row=(initrow - 1), column=initcol, columnspan=2, sticky='ew', pady=10)
+        self.table_lable.insert(END, 'Range and Performance Data') 
           
         labels = ['Buy', 'Sell', 'Close', 'Range Asym - Buy (%)', 'Range Asym - Sell (%)', 'W/W Delta', 
                   '1-Day Delta (%)', '1-Week Delta (%)', '1-Month Delta (%)', '3-Month Delta (%)',
@@ -217,9 +221,9 @@ class HedgeyePage(CTkFrame):
         plt.rcParams['font.size'] = 12
         
         # Graph label
-        self.graphLable = CTkEntry(self, font=('', 20), justify='right', height=40)
-        self.graphLable.grid(row=(initrow - 1), column=initcol, columnspan=6, sticky='ew', padx=10)
-        self.graphLable.insert(END, 'Trade Price                  ')    
+        self.graph_lable = CTkEntry(self, font=('', 20), justify='right', height=40)
+        self.graph_lable.grid(row=(initrow - 1), column=initcol, columnspan=6, sticky='ew', padx=10)
+        self.graph_lable.insert(END, 'Trade Price                  ')    
         
         data = summonHedgeyeData(ticker=ticker)
 
