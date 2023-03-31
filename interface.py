@@ -6,6 +6,7 @@ from DBControls.nysePrep import add_row as addNyse
 from DBControls.dbReadWrite import Hedgeye, NASDAQ, NYSE
 from socket import create_connection
 from threading import Thread
+import json
 
 
 # ------------------------------------------------------------------------------
@@ -274,3 +275,40 @@ def summonNyseData(date=None, most_recent=True):
         }
     else:
         return results # Error
+    
+    
+def getCredentials():
+    """Gets and returns current username and password from config.json.\n"""
+    
+    with open('DataCollection/config.json', 'r') as f:
+        login_payload = json.load(f)
+        return [login_payload['Payload'][0]['username'], login_payload['Payload'][0]['password']]
+
+
+def setCredentials(username=None, password=None):
+    """
+    Given a username and/or password, will change the credentials inside of config.json.\n
+    Args:\n
+        username (string, optional):  Defaults to None.\n
+        password (string, optional):  Defaults to None.\n
+    """
+    
+    # Get
+    with open('DataCollection/config.json', 'r') as f:
+        login_payload = json.load(f)
+
+    # Change
+    if username and password:
+        login_payload['Payload'][0]['username'] = username
+        login_payload['Payload'][0]['password'] = password
+        
+    elif username and not password:
+        login_payload['Payload'][0]['username'] = username
+        
+    elif not username and password:
+        login_payload['Payload'][0]['password'] = password
+       
+    # Set 
+    with open('DataCollection/config.json', 'w') as f:
+        json.dump(login_payload, f)
+        

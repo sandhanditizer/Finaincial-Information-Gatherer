@@ -1,4 +1,5 @@
 from GUI_popup import Popup
+from GUI_settings import Settings
 from interface import summonHedgeyeData
 from customtkinter import CTkFrame, CTkLabel, CTkButton, CTkEntry, CTkComboBox, END
 from tkinter import ttk
@@ -36,6 +37,10 @@ class HedgeyePage(CTkFrame):
         button3 = CTkButton(self, text='NYSE', command=self.gotoNYSE, font=('', 16))
         button3.grid(row=1, column=1, padx=10, pady=10, sticky='nsew')
         
+        # Open settings
+        button4 = CTkButton(self, text='Settings', command=self.openSettings, font=('', 16))
+        button4.grid(row=0, column=7, padx=10, pady=10, sticky='e')
+        
         # Date
         dateLable = CTkLabel(self, text='Date:', font=('', 17))
         dateLable.grid(row=1, column=3, padx=10, pady=10, sticky='e')
@@ -65,6 +70,10 @@ class HedgeyePage(CTkFrame):
         
         self.master.geometry('740x845')
         self.master.showPage('NYSE')
+        
+    
+    def openSettings(self):
+        Settings(self.master)
         
         
     def reloadPage(self, date=None):
@@ -99,12 +108,12 @@ class HedgeyePage(CTkFrame):
             choice (string, optional): Ticker selection. Defaults to None. Refer to the `tickerAction` function.\n
         """
         # Date in entry box
-        self.dateEntry = CTkEntry(self, placeholder_text=f'{date}')
+        self.dateEntry = CTkEntry(self, placeholder_text=f'{date}', justify='center', font=('', 14))
         self.dateEntry.bind('<Return>', self.dateAction)
         self.dateEntry.grid(row=1, column=4, pady=10, sticky='w')
         
         # Ticker in dropdown box
-        self.tickerDropDown = CTkComboBox(self, values=tickers, command=self.tickerAction, width=100)
+        self.tickerDropDown = CTkComboBox(self, values=tickers, command=self.tickerAction, width=100, justify='center', font=('', 14))
         if choice:
             self.tickerDropDown.set(choice)
         self.tickerDropDown.grid(row=1, column=6, pady=10, sticky='w')
@@ -159,7 +168,7 @@ class HedgeyePage(CTkFrame):
         initrow = 4
         initcol = 6
         
-        # Table label
+        # Table label   
         self.tableLable = CTkEntry(self, font=('', 20), justify='center', height=40)
         self.tableLable.grid(row=(initrow - 1), column=initcol, columnspan=2, sticky='ew', pady=10)
         self.tableLable.insert(END, 'Range and Performance Data') 

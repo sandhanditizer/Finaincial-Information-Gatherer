@@ -20,3 +20,8 @@ class Popup(CTkFrame):
         """Displays the error popup with whatever message you include.\n"""
         
         messagebox.showerror("Error", message)
+        
+    def showQuestioning(self, message):
+        """Displays `YES` or `NO` prompt with whatever message you include.\n"""
+        
+        return messagebox.askyesno('Change Credentialing', message)
