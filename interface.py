@@ -1,8 +1,7 @@
-from DataCollection.scrapeHedgeye import newestHedgeyeData
-from DataCollection.scrapeWSJ_Yahoo import newestNasdaqNyseData
-from DBControls.hedgeyePrep import add_row as addHedgeye
-from DBControls.nasdaqPrep import add_row as addNasdaq
-from DBControls.nysePrep import add_row as addNyse
+from DataCollection.websiteControllers import HedgeyeWebController, CompositesWebController
+from DBControls.hedgeyePrep import add_row as addHedgeyeRow
+from DBControls.nasdaqPrep import add_row as addNasdaqRow
+from DBControls.nysePrep import add_row as addNyseRow
 from DBControls.dbReadWrite import Hedgeye, NASDAQ, NYSE
 from socket import create_connection
 from threading import Thread
@@ -20,7 +19,8 @@ def updateHedgeyeTable():
         0: If success\n
     """
     
-    data = newestHedgeyeData()
+    wc = HedgeyeWebController()
+    data = wc.scrapeData()
     
     if type(data) == str:
         return data # Error
@@ -29,7 +29,7 @@ def updateHedgeyeTable():
             date = data.pop() # Removes date information
             if Hedgeye.getData(date=date) == []: # No data in database for this date - add new data
                 for d in data:
-                    addHedgeye(date=date, 
+                    addHedgeyeRow(date=date, 
                             ticker=d['Ticker'], 
                             description=d['Description'], 
                             buy=d['Buy'], 
@@ -50,7 +50,8 @@ def updateNasdaqNyseTables():
         0: If success\n
     """
     
-    data = newestNasdaqNyseData()
+    wc = CompositesWebController()
+    data = wc.scrapeData()
     
     if type(data) == str:
         return data # Error
@@ -58,7 +59,7 @@ def updateNasdaqNyseTables():
         try:
             date = data['Date']
             if NASDAQ.getData(date=date) == None: # No data in database for this date - add new data
-                addNasdaq(date=date, 
+                addNasdaqRow(date=date, 
                         advancing_V=data['NASDAQ Advancing Volume'], 
                         declining_V=data['NASDAQ Declining Volume'],
                         close=data['NASDAQ Close'],
@@ -69,7 +70,7 @@ def updateNasdaqNyseTables():
                         )
                 
             if NYSE.getData(date=date) == None: # No data in database for this date - add new data
-                addNyse(date=date, 
+                addNyseRow(date=date, 
                         advancing_V=data['NYSE Advancing Volume'], 
                         declining_V=data['NYSE Declining Volume'],
                         close=data['NYSE Close'],
