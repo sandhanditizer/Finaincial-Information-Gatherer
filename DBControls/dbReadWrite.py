@@ -1,5 +1,5 @@
 from sqlalchemy.orm import sessionmaker, declarative_base
-from sqlalchemy import create_engine, Column, Float, Text, Integer, func
+from sqlalchemy import create_engine, Column, Float, Text, Integer, func, asc
 from datetime import datetime
 
 
@@ -60,14 +60,14 @@ class Hedgeye(Base):
                 raise ValueError('Date needs to be in the format yyyy-mm-dd.\n')
         
         if date and not ticker:
-            # List of Hedgeye results
-            result = session.query(Hedgeye).filter(Hedgeye.date == date).all()
+            # List of Hedgeye results ordered by date
+            result = session.query(Hedgeye).filter(Hedgeye.date == date).order_by(asc(Hedgeye.date)).all()
             session.close()
             return result
         
         elif ticker and not date:
-            # List of Hedgeye results
-            result = session.query(Hedgeye).filter(Hedgeye.ticker == ticker).all()
+            # List of Hedgeye results ordered by date
+            result = session.query(Hedgeye).filter(Hedgeye.ticker == ticker).order_by(asc(Hedgeye.date)).all()
             session.close()
             return result
         
@@ -80,8 +80,8 @@ class Hedgeye(Base):
         elif not date and most_recent:
             most_recent_date = session.query(func.max(Hedgeye.date)).scalar()
             
-            # List of Hedgeye results
-            result = session.query(Hedgeye).filter(Hedgeye.date == most_recent_date).all()
+            # List of Hedgeye results ordered by date
+            result = session.query(Hedgeye).filter(Hedgeye.date == most_recent_date).order_by(asc(Hedgeye.date)).all()
             session.close()
             return result
         
