@@ -130,7 +130,7 @@ def updateDatabase():
 # Functions called while interacting with the pages
 
     
-def summonHedgeyeData(date=None, ticker=None, most_recent=True):
+def summonHedgeyeData(date=None, ticker=None, most_recent=True, all_dates=False):
     """
     Retrieves data from database in accordance with the request.\n
     If date and not ticker, returns all data associated with that date.\n
@@ -148,10 +148,13 @@ def summonHedgeyeData(date=None, ticker=None, most_recent=True):
     if date or ticker:
         most_recent = False
         
+    if all_dates:
+        return Hedgeye.getAllDates()
+        
     data = []
     results = Hedgeye.getData(date=date, ticker=ticker, most_recent=most_recent)
     
-    if results != []:
+    if type(results) == list:
         tens_close = 0
         twos_close = 0
         
@@ -181,12 +184,31 @@ def summonHedgeyeData(date=None, ticker=None, most_recent=True):
                 twos_close = r.close
                 
         # Calculating the 10s/2s spread on the spot instead of storing them in the database
-        data.append({'10s/2s Spread (bps)': round((tens_close - twos_close) * 100, 2)})            
+        data.append({'10s/2s Spread (bps)': round((tens_close - twos_close) * 100, 2)})      
+    
+    else:
+        data.append(
+            {'Date': results.date,
+                'Ticker': results.ticker,
+                'Description': results.description,
+                'Buy': results.buy,
+                'Sell': results.sell,
+                'Close': results.close,
+                'W/W Delta': results.delta_ww,
+                '1-Day Delta (%)': results.od_delta,
+                '1-Week Delta (%)': results.ow_delta,
+                '1-Month Delta (%)': results.om_delta,
+                '3-Month Delta (%)': results.tm_delta,
+                '6-Month Delta (%)': results.sm_delta,
+                '1-Year Delta (%)': results.oy_delta,
+                'Range Asym - Buy (%)': results.ra_buy,
+                'Range Asym - Sell (%)': results.ra_sell
+            })              
     
     return data
 
 
-def summonNasdaqData(date=None, most_recent=True):
+def summonNasdaqData(date=None, most_recent=True, all_dates=False):
     """
     Retrieves data from database in accordance with the request.\n
     If date, returns data associated with that specified date.\n
@@ -200,6 +222,9 @@ def summonNasdaqData(date=None, most_recent=True):
     
     if date:
         most_recent=False
+        
+    if all_dates:
+        return NASDAQ.getAllDates()
 
     results = NASDAQ.getData(date=date, most_recent=most_recent)
     
@@ -232,7 +257,7 @@ def summonNasdaqData(date=None, most_recent=True):
         return results # Error
     
 
-def summonNyseData(date=None, most_recent=True):
+def summonNyseData(date=None, most_recent=True, all_dates=False):
     """
     Retrieves data from database in accordance with the request.\n
     If date, returns data associated with that specified date.\n
@@ -246,6 +271,9 @@ def summonNyseData(date=None, most_recent=True):
 
     if date:
         most_recent=False
+        
+    if all_dates:
+        return NYSE.getAllDates()
         
     results = NYSE.getData(date=date, most_recent=most_recent)
     

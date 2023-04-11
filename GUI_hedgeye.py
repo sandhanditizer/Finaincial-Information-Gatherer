@@ -1,4 +1,3 @@
-from GUI_popup import Popup
 from GUI_settings import Settings
 from interface import summonHedgeyeData
 from customtkinter import CTkFrame, CTkLabel, CTkButton, CTkEntry, CTkComboBox, CTkProgressBar, END
@@ -18,6 +17,10 @@ class HedgeyePage(CTkFrame):
         self.data = None
         self.tickers = []
         self.progress_bar = CTkProgressBar(self, mode='indeterminate', width=200)
+        
+        # For the date selector
+        self.dates = summonHedgeyeData(all_dates=True)
+        self.dates.reverse() 
         
         # Manual configures to get spacing right
         self.grid_rowconfigure(2, minsize=25)
@@ -39,7 +42,7 @@ class HedgeyePage(CTkFrame):
         button3.grid(row=1, column=1, padx=10, pady=10, sticky='nsew')
         
         # Open settings
-        button4 = CTkButton(self, text='Settings', command=self.openSettings, font=('', 16), width=80)
+        button4 = CTkButton(self, text='Settings', command=self.openSettings, font=('', 16), width=100)
         button4.grid(row=0, column=7, padx=10, pady=10, sticky='e')
         
         # Date
@@ -80,52 +83,26 @@ class HedgeyePage(CTkFrame):
         Settings(self.master)
         
         
-    def reloadPage(self, date=None):
+    def reloadPage(self, target_date=None, target_tick=None):
         """
-        Gets specified data or most recent data from database.\n
+        Reloads all data on the page given that the user selects a different date or ticker to look at.\n
         Args:\n
-            date (string, optional): 'yyyy-mm-dd'. Defaults to None.\n
+            target_date (string, optional): Date that user chooses. Defaults to None.\n
+            target_tick (string, optional): Ticker that user chooses. Defaults to None.\n
         """
         
-        data = summonHedgeyeData(date=date)
+        # Gets most recent information on startup because tdate and ttick are None
+        data = summonHedgeyeData(date=target_date, ticker=target_tick)
         
-        if data == []:
-            Popup(self).showWarning(f'No data exists for {date}.')
-            return
-        
-        self.data = data
-        self.tickers = [d['Ticker'] for d in self.data[0:-1]] # Exclude the 10s/2s data
+        if len(data) > 1:
+            self.data = data # For updating the 10s/2s spread and tickerAction function
+            self.tickers = [d['Ticker'] for d in data[0:-1]] # Exclude the 10s/2s data
         
         # Display the first bout of data in the list
-        self.drawInteractiveWidgets(self.data[0]['Date'], self.tickers, self.data[0]['Description'])
-        self.drawTable(self.data[0])
-        self.drawGraph(self.data[0]['Ticker'])
+        self.drawTable(data[0])
+        self.drawGraph(data[0]['Ticker'])
+        self.drawInteractiveWidgets(self.tickers, data[0]['Description'], target_date, data[0]['Ticker'])
 
-        
-    def drawInteractiveWidgets(self, date, tickers, description, choice=None):
-        """
-        Updates the page when the user creates an event while using the page.\n
-        Args:\n
-            date (string): 'yyyy-mm-dd'.\n
-            tickers (string): 'ABC...Z'.\n
-            description (string): Description of ticker.\n
-            choice (string, optional): Ticker selection. Defaults to None. Refer to the `tickerAction` function.\n
-        """
-        # Date in entry box
-        self.date_entry = CTkEntry(self, placeholder_text=f'{date}', justify='center', font=('', 14))
-        self.date_entry.bind('<Return>', self.dateAction)
-        self.date_entry.grid(row=1, column=4, pady=10, sticky='w')
-        
-        # Ticker in dropdown box
-        self.ticker_drop_down = CTkComboBox(self, values=tickers, command=self.tickerAction, width=100, justify='center', font=('', 14))
-        if choice:
-            self.ticker_drop_down.set(choice)
-        self.ticker_drop_down.grid(row=1, column=6, pady=10, sticky='w')
-        
-        # Description to the right of ticker dropdown
-        self.description_lable = CTkLabel(self, text=description, font=('', 16))
-        self.description_lable.grid(row=1, column=7, columnspan=2, pady=10, sticky='ew')
-        
         
     def findDictByTick(self, dlist, ticker):
         """Finds the specified ticker data in the list of dictionaries.\n"""
@@ -144,23 +121,45 @@ class HedgeyePage(CTkFrame):
         """
         
         target_dict = self.findDictByTick(self.data, ticker)
-        self.drawInteractiveWidgets(target_dict['Date'], self.tickers, target_dict['Description'], ticker)
-        self.drawTable(target_dict)
-        self.drawGraph(ticker=target_dict['Ticker'])
+        self.reloadPage(target_date=target_dict['Date'], target_tick=target_dict['Ticker'])
         
         
-    def dateAction(self, _):
-        """Changes the page accordingly when choosing a different date to look at.\n"""
+    def dateAction(self, date):
+        """
+        Changes the page accordingly when choosing a different date to look at.\n
+        Takes in an event from the ComboBox.\n
+        """
         
-        date = self.date_entry.get()
-        
-        try:
-            datetime.strptime(date, '%Y-%m-%d')
-            self.reloadPage(date=date)
-        except ValueError:
-            Popup(self).showInfo('Date needs to be in the format: yyyy-mm-dd.')    
+        self.reloadPage(target_date=date)
             
             
+    def drawInteractiveWidgets(self, tickers, description, date_choice=None, ticker_choice=None):
+        """
+        Redraws the date and ticker combo boxes.\n
+        Args:\n
+            tickers (string)
+            description (string):
+            date_choice (string, optional): Date that user chooses. Defaults to None.
+            ticker_choice (string, optional): Ticker that user chooses. Defaults to None.
+        """
+
+        # Date in entry box
+        self.date_drop_down = CTkComboBox(self, values=self.dates, command=self.dateAction, width=140, justify='center', font=('', 14))
+        if date_choice:
+            self.date_drop_down.set(date_choice)
+        self.date_drop_down.grid(row=1, column=4, pady=10, sticky='w')
+        
+        # Ticker in dropdown box
+        self.ticker_drop_down = CTkComboBox(self, values=tickers, command=self.tickerAction, width=100, justify='center', font=('', 14))
+        if ticker_choice:
+            self.ticker_drop_down.set(ticker_choice)
+        self.ticker_drop_down.grid(row=1, column=6, pady=10, sticky='w')
+        
+        # Description to the right of ticker dropdown
+        self.description_lable = CTkLabel(self, text=description, font=('', 16))
+        self.description_lable.grid(row=1, column=7, columnspan=2, pady=10, sticky='ew')
+        
+        
     def drawTable(self, data):    
         """
         Updates table with data passed in.\n
@@ -230,7 +229,7 @@ class HedgeyePage(CTkFrame):
         fig = plt.Figure(figsize=(8, 6), tight_layout=True)
         ax = fig.add_subplot(111)
         
-        dates = [datetime.strptime(d['Date'], '%Y-%m-%d') for d in data[:-1]] # Exclude 10s/2s data
+        dates = [datetime.strptime(d['Date'], '%Y-%m-%d') for d in data[:-1]] # Exclude 10s/2s data        
         y1 = [d['Buy'] for d in data[0:-1]]
         y2 = [d['Sell'] for d in data[0:-1]]
         y3 = [d['Close'] for d in data[0:-1]]

@@ -1,8 +1,7 @@
 from GUI_popup import Popup
 from interface import summonNyseData
-from customtkinter import CTkFrame, CTkLabel, CTkButton, CTkEntry, CTkProgressBar, END
+from customtkinter import CTkFrame, CTkLabel, CTkButton, CTkEntry, CTkProgressBar, CTkComboBox, END
 from tkinter import ttk
-from datetime import datetime
 from threading import Thread
 
 
@@ -14,6 +13,8 @@ class NYSEPage(CTkFrame):
         
         self.data = None
         self.progress_bar = CTkProgressBar(self, mode='indeterminate', width=150)
+        self.dates = summonNyseData(all_dates=True)
+        self.dates.reverse()
         
         self.grid_rowconfigure(2, minsize=25)
         self.grid_columnconfigure(3, minsize=100)
@@ -61,16 +62,11 @@ class NYSEPage(CTkFrame):
         self.master.showPage('Hedgeye')
         
         
-    def reloadPage(self, date=None):
-        data = summonNyseData(date=date)
-        
-        if data == []:
-            Popup(self).showWarning(f'No data exists for {date}.')
-            return
-        
+    def reloadPage(self, target_date=None):
+        data = summonNyseData(date=target_date)        
         self.data = data
-        self.drawInteractiveWidget(self.data['Date'])
-        self.drawTable(self.data)
+        self.drawInteractiveWidget(data['Date'])
+        self.drawTable(data)
     
     
     def checkAlerts(self):
@@ -99,21 +95,16 @@ class NYSEPage(CTkFrame):
             popup.showInfo('No new alerts')
               
     
-    def dateAction(self, _):
-        date = self.date_entry.get()
-        
-        try:
-            datetime.strptime(date, '%Y-%m-%d')
-            self.reloadPage(date=date)
-        except ValueError:
-            Popup(self).showInfo('Date needs to be in the format: yyyy-mm-dd.')  
+    def dateAction(self, date):
+        self.reloadPage(target_date=date)
     
     
-    def drawInteractiveWidget(self, date):
-        # Date in entry box
-        self.date_entry = CTkEntry(self, placeholder_text=f'{date}')
-        self.date_entry.bind('<Return>', self.dateAction)
-        self.date_entry.grid(row=1, column=4, padx=10, pady=10, sticky='w')
+    def drawInteractiveWidget(self, date_choice):       
+        # Date in entry box        
+        self.date_drop_down = CTkComboBox(self, values=self.dates, command=self.dateAction, width=140, justify='center', font=('', 14))
+        if date_choice:
+            self.date_drop_down.set(date_choice)
+        self.date_drop_down.grid(row=1, column=4, padx=10, pady=10, sticky='w')
         
         
     def drawTable(self, data):          

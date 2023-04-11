@@ -7,6 +7,16 @@ Base = declarative_base()
 db_filename = 'DBControls/database.db'
 
 
+def createSession():
+    try:
+        # Open a editor session with the database
+        engine = create_engine(f'sqlite:///{db_filename}', )
+        Session = sessionmaker(bind=engine)
+        return Session()
+    except:
+        raise ConnectionError(f"Cannot create an engine or make a session for {db_filename}.\n")
+
+
 class Hedgeye(Base):
     __tablename__ = 'Hedgeye'
     id = Column(Integer, name='ID', primary_key=True)
@@ -39,14 +49,7 @@ class Hedgeye(Base):
             dict: If call is getData(date='yyyy-mm-dd', ticker='ABC')
             
         """
-        
-        try:
-            # Open a editor session with the database
-            engine = create_engine(f'sqlite:///{db_filename}', )
-            Session = sessionmaker(bind=engine)
-            session = Session()
-        except:
-            raise ConnectionError(f"Cannot create an engine or make a session for {db_filename}.\n")
+        session = createSession()
 
         if date == '' or ticker == '':
             session.close()
@@ -89,6 +92,17 @@ class Hedgeye(Base):
             session.close()
             raise ValueError('Need either date, ticker, or both to complete data lookup.\n')
         
+    
+    def getAllDates():
+        session = createSession()
+        
+        result = session.query(Hedgeye.date).distinct().order_by(asc(Hedgeye.date)).all()
+        session.close()
+        dates = []
+        for r in result:
+            dates.append(r[0])
+        return dates
+        
         
     def writeData(date, ticker, description, buy, sell, close, delta_ww, od_delta, 
                    ow_delta, om_delta, tm_delta, sm_delta, oy_delta, ra_buy, ra_sell):
@@ -111,14 +125,7 @@ class Hedgeye(Base):
             ra_buy (float): Range asymmetry buy.\n
             ra_sell (float): Range asymmetry sell.\n
         """
-        
-        try:
-            # Open a editor session with the database
-            engine = create_engine(f'sqlite:///{db_filename}', )
-            Session = sessionmaker(bind=engine)
-            session = Session()
-        except:
-            raise ConnectionError(f"Cannot create an engine or make a session for {db_filename}.\n")
+        session = createSession()
         
         try:
             new_row = Hedgeye(date=date, ticker=ticker, description=description, 
@@ -173,14 +180,7 @@ class NASDAQ(Base):
         Returns:\n
             dict: Data.\n
         """
-        
-        try:
-            # Open a editor session with the database
-            engine = create_engine(f'sqlite:///{db_filename}', )
-            Session = sessionmaker(bind=engine)
-            session = Session()
-        except:
-            raise ConnectionError(f"Cannot create an engine or make a session for {db_filename}.\n")
+        session = createSession()
             
         if date == '':
             session.close()
@@ -207,6 +207,17 @@ class NASDAQ(Base):
         else:
             session.close()
             raise ValueError('Need date to complete data lookup.\n')
+        
+        
+    def getAllDates():
+        session = createSession()
+        
+        result = session.query(NASDAQ.date).distinct().order_by(asc(NASDAQ.date)).all()
+        session.close()
+        dates = []
+        for r in result:
+            dates.append(r[0])
+        return dates
         
 
     def writeData(date, advancing_V, declining_V, total_V, delta_V, close, upside_day, downside_day, 
@@ -238,14 +249,7 @@ class NASDAQ(Base):
             tod_avg (float): 21-Day Average.\n
             std_avg (float): 63-Day Average.\n
         """
-        
-        try:
-            # Open a editor session with the database
-            engine = create_engine(f'sqlite:///{db_filename}', )
-            Session = sessionmaker(bind=engine)
-            session = Session()
-        except:
-            raise ConnectionError(f"Cannot create an engine or make a session for {db_filename}.\n")
+        session = createSession()
         
         try:
             new_row = NASDAQ(date=date, advancing_V=advancing_V, declining_V=declining_V, total_V=total_V, 
@@ -301,14 +305,7 @@ class NYSE(Base):
         Returns:\n
             dict: Data.\n
         """
-        
-        try:
-            # Open a editor session with the database
-            engine = create_engine(f'sqlite:///{db_filename}', )
-            Session = sessionmaker(bind=engine)
-            session = Session()
-        except:
-            raise ConnectionError(f"Cannot create an engine or make a session for {db_filename}.\n")
+        session = createSession()
             
         if date == '':
             session.close()
@@ -335,6 +332,17 @@ class NYSE(Base):
         else:
             session.close()
             raise ValueError('Need date to complete data lookup.\n')
+        
+
+    def getAllDates():
+        session = createSession()
+        
+        result = session.query(NYSE.date).distinct().order_by(asc(NYSE.date)).all()
+        session.close()
+        dates = []
+        for r in result:
+            dates.append(r[0])
+        return dates
 
 
     def writeData(date, advancing_V, declining_V, total_V, delta_V, close, upside_day, downside_day, 
@@ -366,14 +374,7 @@ class NYSE(Base):
             tod_avg (float): 21-Day Average.\n
             std_avg (float): 63-Day Average.\n
         """
-        
-        try:
-            # Open a editor session with the database
-            engine = create_engine(f'sqlite:///{db_filename}', )
-            Session = sessionmaker(bind=engine)
-            session = Session()
-        except:
-            raise ConnectionError(f"Cannot create an engine or make a session for {db_filename}.\n")
+        session = createSession()
         
         try:
             new_row = NYSE(date=date, advancing_V=advancing_V, declining_V=declining_V, total_V=total_V, 
