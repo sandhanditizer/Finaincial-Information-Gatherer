@@ -102,6 +102,11 @@ class HedgeyePage(CTkFrame):
         self.drawTable(data[0])
         self.drawGraph(data[0]['Ticker'])
         self.drawInteractiveWidgets(self.tickers, data[0]['Description'], target_date, data[0]['Ticker'])
+        
+        # This saves where you are on the page so the user doesnt lose where they are if the navigate to other pages
+        self.master.pages['Hedgeye'][1] = target_date
+        self.master.pages['Hedgeye'][2] = data[0]['Ticker']
+        
 
         
     def findDictByTick(self, dlist, ticker):

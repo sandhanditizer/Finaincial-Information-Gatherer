@@ -1,7 +1,7 @@
 # Financial-Information-Gatherer (FIG)
 
 ## Downloads needed:
-```
+```bash
 pip3 install sqlalchemy  
 pip3 install pysqlite3  
 pip3 install selenium  
@@ -11,10 +11,10 @@ pip3 install matplotlib
 ```
 
 ## Choosing which browser to silently complete web scraping:
-In `DataCollection/scrapeHedgeye.py` and `DataCollection/scrapeWSJ_Yahoo.py` you will need to change the parameter for the function `getDriver` to either 'Firefox' or 'Edge' depending on which browser you are using. If there is a problem you will get the appropriate error warning in your terminal.  
+In `DataCollection/scrapeHedgeye.py` and `DataCollection/scrapeWSJ_Yahoo.py` the function `getDriver` defaults to a 'Firefox' driver, but if it fails then it will try an 'Edge' driver. If you do not have Firefox or Edge installed, then please install one or the other. If there is a problem you will get the appropriate error message in your terminal. Once Firefox or Edge is installed, there is no further action needed.
 
 ## Credentialing and database creation:
-Due to the fact the data in my database is proprietary data from Hedgeye, I am excluding the database and the `config.json` data that my program uses to log into Hedgeye's website.  
+Due to the fact that the data in my database is proprietary data from hedgeye.com, I am excluding the database and the `config.json` data that my program uses to log into Hedgeye's website. I will be adding an example database so that you can interact with the app without seeing the proprietary data. If you would like to see data from hedgeye.com, follow the instructions below for creating the database with the correct tables, getting a Hedgeye subscription, and editing the config.json file. If you choose to stay with the example database, you will get an error popup telling you that it cant get data from Hedgeye because you do not have access to the data. That is okay, just acknowledge the popup and it will proceed to the main hedgeye page with fake data.
 
 ### Creating the SQLite database:
 Create a sqlite database called `database.db` and store it in the `DBControls` file. Next, get an open-source universal database management tool that works with SQLite databases (I use the DBeaver Community edition which is free). Using a management tool like DBeaver, enter these tables into the database...
@@ -106,11 +106,11 @@ If you bought a Hedgeye subscription and correctly edited the config.json file. 
 
 ## Running the program:
 Run the program by executing
-```
+```bash
 python3 GUI_app.py 
 ```
 in the terminal or 
-```
+```bash
 run GUI_app.py
 ```
 in Ipython.

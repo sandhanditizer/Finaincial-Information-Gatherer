@@ -67,6 +67,8 @@ class NYSEPage(CTkFrame):
         self.data = data
         self.drawInteractiveWidget(data['Date'])
         self.drawTable(data)
+        
+        self.master.pages['NYSE'][1] = target_date
     
     
     def checkAlerts(self):

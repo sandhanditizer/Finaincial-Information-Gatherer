@@ -81,6 +81,9 @@ class NASDAQPage(CTkFrame):
         self.data = data
         self.drawInteractiveWidget(data['Date'])
         self.drawTable(data)
+        
+        # This saves where you are on the page so the user doesnt lose where they are if the navigate to other pages
+        self.master.pages['NASDAQ'][1] = target_date
     
     
     def checkAlerts(self):
