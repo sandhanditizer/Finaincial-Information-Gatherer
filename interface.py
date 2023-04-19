@@ -5,7 +5,9 @@ from DBControls.nysePrep import add_row as addNyseRow
 from DBControls.dbReadWrite import Hedgeye, NASDAQ, NYSE
 from socket import create_connection
 from threading import Thread
+import datetime
 import json
+
 
 
 # ------------------------------------------------------------------------------
@@ -100,7 +102,7 @@ class ThreadUpdate(Thread):
         return self._result
         
         
-def checkWiFiConnection():
+def WiFiConnection():
     """
     Checks WiFi connection.\n
     Returns:\n
@@ -114,45 +116,63 @@ def checkWiFiConnection():
     
 
 def updateDatabase():
-    if checkWiFiConnection():
-        thread1 = ThreadUpdate(target=updateHedgeyeTable)
-        thread2 = ThreadUpdate(target=updateNasdaqNyseTables)
-        thread1.start()
-        thread2.start()
-        thread1.join()
-        thread2.join()
-        return [thread1.result(), thread2.result()]
+    date = datetime.date.today()
+    todays_date = datetime.datetime.strftime(date, '%Y-%m-%d')
+    yesterdays_date = datetime.datetime.strftime(date - datetime.timedelta(days=1), '%Y-%m-%d')
+    j1, j2 = False, False
+    
+    if WiFiConnection():
+        # Not up-to-date and it is not saturday or sunday
+        if todays_date != Hedgeye.getAllDates()[-1] and date.weekday() != 5 and date.weekday() != 6:
+            thread1 = ThreadUpdate(target=updateHedgeyeTable)
+            thread1.start()
+            j1 = True
+
+        # Not up-to-date and it is not sunday
+        if yesterdays_date != NASDAQ.getAllDates()[-1] and date.weekday() != 6: 
+            thread2 = ThreadUpdate(target=updateNasdaqNyseTables)
+            thread2.start()
+            j2 = True
+
+        if j1 and j2:
+            thread1.join()
+            thread2.join()
+            return [thread1.result(), thread2.result()]
+        elif j1 and not j2:
+            thread1.join()
+            return [thread1.result(), 0]   
+        elif not j1 and j2:
+            thread2.join()
+            return [0, thread2.result()]   
+        else:
+            return [0, 0]
+        
     else:
         return 'WiFi is down. Please check your connection.'
-    
+
 
 # ------------------------------------------------------------------------------
 # Functions called while interacting with the pages
 
     
-def summonHedgeyeData(date=None, ticker=None, most_recent=True, all_dates=False):
+def summonHedgeyeData(date=None, ticker=None, all_dates=False):
     """
     Retrieves data from database in accordance with the request.\n
     If date and not ticker, returns all data associated with that date.\n
     If date and ticker, returns data associated with that date and specific ticker.\n
     If not date and ticker, returns all data for that specific ticker.\n
-    If not date and not ticker, grabs data associated with the closest dates data.\n
+    If not date and not ticker, grabs the most recent data.\n
     Args:\n
         date (string, optional): 'yyyy-mm-dd'. Defaults to None.\n
         ticker (string, optional): 'ABC...Z'. Defaults to None.\n
-        most_recent (bool, optional): True = Gets most recent data. Defaults to True.\n
     Returns:\n
         list: List of dictionaries that hold data.\n
     """
-    
-    if date or ticker:
-        most_recent = False
-        
     if all_dates:
         return Hedgeye.getAllDates()
         
     data = []
-    results = Hedgeye.getData(date=date, ticker=ticker, most_recent=most_recent)
+    results = Hedgeye.getData(date=date, ticker=ticker)
     
     if type(results) == list:
         tens_close = 0
@@ -208,25 +228,20 @@ def summonHedgeyeData(date=None, ticker=None, most_recent=True, all_dates=False)
     return data
 
 
-def summonNasdaqData(date=None, most_recent=True, all_dates=False):
+def summonNasdaqData(date=None, all_dates=False):
     """
     Retrieves data from database in accordance with the request.\n
     If date, returns data associated with that specified date.\n
-    If not date, grabs data associated with the closest dates data.\n
+    If not date, grabs the most recent data.\n
     Args:\n
         date (string, optional): 'yyyy-mm-dd'. Defaults to None.\n
-        most_recent (bool, optional): True = Gets most recent data. Defaults to True.\n
     Returns:\n
         dict: Data.\n
-    """
-    
-    if date:
-        most_recent=False
-        
+    """  
     if all_dates:
         return NASDAQ.getAllDates()
 
-    results = NASDAQ.getData(date=date, most_recent=most_recent)
+    results = NASDAQ.getData(date=date)
     
     if results:
         return {
@@ -257,25 +272,20 @@ def summonNasdaqData(date=None, most_recent=True, all_dates=False):
         return results # Error
     
 
-def summonNyseData(date=None, most_recent=True, all_dates=False):
+def summonNyseData(date=None, all_dates=False):
     """
     Retrieves data from database in accordance with the request.\n
     If date, returns data associated with that specified date.\n
-    If not date, grabs data associated with the closest dates data.\n
+    If not date, grabs the most recent data.\n
     Args:\n
         date (string, optional): 'yyyy-mm-dd'. Defaults to None.\n
-        most_recent (bool, optional): True = Gets most recent data. Defaults to True.\n
     Returns:\n
         dict: Data.\n
-    """    
-
-    if date:
-        most_recent=False
-        
+    """        
     if all_dates:
         return NYSE.getAllDates()
         
-    results = NYSE.getData(date=date, most_recent=most_recent)
+    results = NYSE.getData(date=date)
     
     if results:
         return {

@@ -93,7 +93,7 @@ class HedgeyePage(CTkFrame):
         
         # Gets most recent information on startup because tdate and ttick are None
         data = summonHedgeyeData(date=target_date, ticker=target_tick)
-        
+                
         if len(data) > 1:
             self.data = data # For updating the 10s/2s spread and tickerAction function
             self.tickers = [d['Ticker'] for d in data[0:-1]] # Exclude the 10s/2s data
@@ -104,7 +104,7 @@ class HedgeyePage(CTkFrame):
         self.drawInteractiveWidgets(self.tickers, data[0]['Description'], target_date, data[0]['Ticker'])
         
         # This saves where you are on the page so the user doesnt lose where they are if the navigate to other pages
-        self.master.pages['Hedgeye'][1] = target_date
+        self.master.pages['Hedgeye'][1] = data[0]['Date']
         self.master.pages['Hedgeye'][2] = data[0]['Ticker']
         
 
@@ -162,7 +162,7 @@ class HedgeyePage(CTkFrame):
         
         # Description to the right of ticker dropdown
         self.description_lable = CTkLabel(self, text=description, font=('', 16))
-        self.description_lable.grid(row=1, column=7, columnspan=2, pady=10, sticky='ew')
+        self.description_lable.grid(row=1, column=7, columnspan=3, pady=10, sticky='ew')
         
         
     def drawTable(self, data):    
@@ -178,21 +178,43 @@ class HedgeyePage(CTkFrame):
         
         # Table label   
         self.table_lable = CTkEntry(self, font=('', 20), justify='center', height=40)
-        self.table_lable.grid(row=(initrow - 1), column=initcol, columnspan=2, sticky='ew', pady=10)
+        self.table_lable.grid(row=(initrow - 1), column=initcol, columnspan=3, sticky='ew', pady=10)
         self.table_lable.insert(END, 'Range and Performance Data') 
           
         labels = ['Buy', 'Sell', 'Close', 'Range Asym - Buy (%)', 'Range Asym - Sell (%)', 'W/W Delta', 
                   '1-Day Delta (%)', '1-Week Delta (%)', '1-Month Delta (%)', '3-Month Delta (%)',
                   '6-Month Delta (%)', '1-Year Delta (%)']
 
-        # Table tree
+        # Changing the style based on color mode
         style = ttk.Style()
-        style.configure('my.Treeview', rowheight=60, font=('', 20), background='white', foreground='black', bordercolor='black', borderwidth=1)
-        style.map('my.Treeview', background=[('selected', 'grey')], foreground=[('selected', 'black')])
-        self.table = ttk.Treeview(self, columns=('col1',), style='my.Treeview', show='tree')
-
+        if self._get_appearance_mode() == 'dark':
+            background_color = '#103248'
+            row_color = '#373737'
+            row_color2 = '#4B4B4B'
+            text_color = 'white'
+            highlight_color = '#476D7C'
+            style.configure('my.Treeview', rowheight=53, font=(None, 20), borderwidth=1, fieldbackground=background_color)
+        else:
+            background_color = '#E5E5E5'
+            row_color = '#F7F7F7'
+            row_color2 = '#D3D3D3'
+            text_color = 'black'
+            highlight_color = '#476D7C'
+            style.configure('my.Treeview', rowheight=53, font=(None, 20), borderwidth=1, fieldbackground=background_color)
+            
+        # Color change when clicking on the table
+        style.map('my.Treeview', background=[('selected', highlight_color)], foreground=[('selected', 'white')])
+        
+        # Top row tree
+        self.top_row = ttk.Treeview(self, columns=('col1',), style='my.Treeview', show='tree')
         # Stationary data, only changes when date changes
-        self.table.insert('', 'end', text='10s/2s Spread (bps)', values=(self.data[-1]['10s/2s Spread (bps)']), tags='tt')
+        self.top_row.insert('', 'end', text='10s/2s Spread (bps)', values=(self.data[-1]['10s/2s Spread (bps)']), tags='tt')
+        self.top_row.tag_configure('tt', background=background_color, foreground=text_color)
+        self.top_row.column('col1', anchor='e')
+        self.top_row.grid(row=initrow, column=initcol, columnspan=3, sticky='nsew', pady=7)
+        
+        # Table tree
+        self.table = ttk.Treeview(self, columns=('col1',), style='my.Treeview', show='tree')
         
         # Changes when ticker and date are changed
         for i, label in enumerate(labels):
@@ -203,12 +225,11 @@ class HedgeyePage(CTkFrame):
                 self.table.insert('', 'end', text=label, values=[d], tags='odd')
                   
         # Coloring the rows differently so the table is better contrasted
-        self.table.tag_configure('even', background='light grey', foreground='black')
-        self.table.tag_configure('odd', background='white', foreground='black')
-        self.table.tag_configure('tt', background='light blue', foreground='black')
+        self.table.tag_configure('even', background=row_color, foreground=text_color)
+        self.table.tag_configure('odd', background=row_color2, foreground=text_color)
         self.table.column('col1', anchor='e')
 
-        self.table.grid(row=initrow, column=initcol, columnspan=2, rowspan=10, sticky='nsew')
+        self.table.grid(row=initrow, column=initcol, columnspan=3, rowspan=9, sticky='nsew', pady=73)
 
 
     def drawGraph(self, ticker):
@@ -217,7 +238,6 @@ class HedgeyePage(CTkFrame):
         Args:\n
             ticker (string): 'ABC...Z'.\n
         """
-        
         # Top left of the table is where to specify location
         initrow = 4
         initcol = 0
@@ -229,11 +249,26 @@ class HedgeyePage(CTkFrame):
         self.graph_lable.grid(row=(initrow - 1), column=initcol, columnspan=6, sticky='ew', padx=10)
         self.graph_lable.insert(END, 'Trade Price                  ')    
         
-        data = summonHedgeyeData(ticker=ticker)
-
-        fig = plt.Figure(figsize=(8, 6), tight_layout=True)
-        ax = fig.add_subplot(111)
         
+        # Setting color scheme
+        if self._get_appearance_mode() == 'dark':
+            face_color = '#103248'
+            label_color = 'white'
+            close_line_color = '#C1C1C1'
+            grid_color = '#8F8F8F'
+            
+        else:
+            face_color = '#E5E5E5'
+            label_color = 'black'
+            close_line_color = 'black'
+            grid_color = 'black'
+        
+
+        fig = plt.Figure(figsize=(8, 6), tight_layout=True, facecolor=face_color)
+        ax = fig.add_subplot(111)
+        ax.set_facecolor(face_color)
+        
+        data = summonHedgeyeData(ticker=ticker)
         dates = [datetime.strptime(d['Date'], '%Y-%m-%d') for d in data[:-1]] # Exclude 10s/2s data        
         y1 = [d['Buy'] for d in data[0:-1]]
         y2 = [d['Sell'] for d in data[0:-1]]
@@ -250,44 +285,44 @@ class HedgeyePage(CTkFrame):
             diff = (dates[i] - dates[i - 1]).days
             if diff >= 7:
                 index_ends.append(i - 1)
-                index_starts.append(i)
-
+                index_starts.append(i)            
         
         if len(index_ends) == 0:
             ax.plot_date(dates, y1, 'g^', label='Buy', linestyle='-')
             ax.plot_date(dates, y2, 'rv', label='Sell', linestyle='-')
-            ax.plot_date(dates, y3, color='black', label='Close', linestyle='--', fmt='d')
+            ax.plot_date(dates, y3, color=close_line_color, label='Close', linestyle='--', fmt='d')
             
         else:
             # First line segment
             ax.plot_date(dates[0:index_ends[0]], y1[0:index_ends[0]], 'g^', label='Buy', linestyle='-')
             ax.plot_date(dates[0:index_ends[0]], y2[0:index_ends[0]], 'rv', label='Sell', linestyle='-')
-            ax.plot_date(dates[0:index_ends[0]], y3[0:index_ends[0]], color='black', label='Close', linestyle='--', fmt='d')
+            ax.plot_date(dates[0:index_ends[0]], y3[0:index_ends[0]], color=close_line_color, label='Close', linestyle='--', fmt='d')
         
             # Any line segment after the first and before the final segment
             for i in range(1, len(index_ends)):
                 ax.plot_date(dates[index_starts[i-1]:index_ends[i]], y1[index_starts[i-1]:index_ends[i]], 'g^', linestyle='-')
                 ax.plot_date(dates[index_starts[i-1]:index_ends[i]], y2[index_starts[i-1]:index_ends[i]], 'rv', linestyle='-')
-                ax.plot_date(dates[index_starts[i-1]:index_ends[i]], y3[index_starts[i-1]:index_ends[i]], color='black', label='Close', linestyle='--', fmt='d')
+                ax.plot_date(dates[index_starts[i-1]:index_ends[i]], y3[index_starts[i-1]:index_ends[i]], color=close_line_color, label='Close', linestyle='--', fmt='d')
                 
             # Final segment
             ax.plot_date(dates[index_starts[-1]:-1], y1[index_starts[-1]:-1], 'g^', linestyle='-')
             ax.plot_date(dates[index_starts[-1]:-1], y2[index_starts[-1]:-1], 'rv', linestyle='-')
-            ax.plot_date(dates[index_starts[-1]:-1], y3[index_starts[-1]:-1], color='black', linestyle='--', fmt='d')
+            ax.plot_date(dates[index_starts[-1]:-1], y3[index_starts[-1]:-1], color=close_line_color, linestyle='--', fmt='d')
         
         # ------------------------------------------------------------------------------------------------
 
         for tick in ax.get_xticklabels():
-            tick.set_rotation(40)
+            tick.set_rotation(30)
             
         ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
         ax.autoscale_view()
-
-        ax.set_xlabel('Date')
-        ax.set_ylabel('Price')
+        ax.tick_params(colors=label_color, grid_color=grid_color)
+        ax.set_xlabel('Date', color=label_color)
+        ax.set_ylabel('Price', color=label_color)
         ax.legend()
-        ax.grid(axis='y')
-
+        ax.grid(axis='y', color=grid_color)
+        
+        
         # Create the canvas and draw the plot
         canvas = FigureCanvasTkAgg(fig, master=self)
         canvas.draw()
@@ -297,11 +332,11 @@ class HedgeyePage(CTkFrame):
         toolbar.update()
         toolbar.grid(row=initrow - 1, column=initcol, columnspan=3, sticky='w', padx=20)
               
-        canvas.get_tk_widget().grid(row=initrow, column=initcol, columnspan=6, rowspan=12, sticky='nsew', padx=10)
+        canvas.get_tk_widget().grid(row=initrow, column=initcol, columnspan=6, rowspan=1, sticky='nsew', padx=10)
         
         
 class CustomToolbar(NavigationToolbar2Tk):
     def __init__(self, canvas_, parent_):
         super(CustomToolbar, self).__init__(canvas_, parent_, pack_toolbar=False)
-        self.config(background='gray20', highlightbackground='gray20', highlightcolor='gray20')
-        self._message_label.config(foreground='white', background='gray20')
+        self.config(background='#373737', highlightbackground='#373737', highlightcolor='#373737')
+        self._message_label.config(foreground='white', background='#373737')

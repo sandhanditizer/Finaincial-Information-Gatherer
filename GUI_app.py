@@ -28,21 +28,22 @@ class MainApp(CTk):
         
         thread = Thread(target=self.initiateWebScrape, args=('Hedgeye',)) # Hedgeye is the first page to be shown
         thread.start()
-        
+    
+    
+    def createStashPages(self):
         # Create the interactive pages
         self.pages = {
-            'Hedgeye': HedgeyePage(self),
-            'NASDAQ': NASDAQPage(self),
-            'NYSE': NYSEPage(self)
+            'Hedgeye': [HedgeyePage(self), None, None], # [PageObject, currect_date, current_ticker]
+            'NASDAQ': [NASDAQPage(self), None], # [PageObject, currect_date]
+            'NYSE': [NYSEPage(self), None] # [PageObject, currect_date]
         }
         
         # Stash the interactive pages
         for page in self.pages.values():
-            page.grid_forget()
+            page[0].grid_forget()
                     
-
-                
-    def showPage(self, page): 
+      
+    def showPage(self, requested_page): 
         """
         Master function that allows each interactive page to switch to a different interactive page.\n
         Stashes all pages and then displays the page that is specified.\n
@@ -50,13 +51,14 @@ class MainApp(CTk):
             page (string): Dictionary name of the page ('Hedgeye', 'NASDAQ', 'NYSE')\n
         """
         
-        for p in self.pages.values():
-            p.grid_forget()
+        for page in self.pages.values():
+            page[0].grid_forget()
         
-        self.title(page)
-        self.pages[page].reloadPage() # Refresh that page with todays data
-        self.pages[page].progress_bar.grid_forget()
-        self.pages[page].grid(row=0, column=0, sticky='nsew')
+        self.title(requested_page) # Change the page header
+        saved_info_params = self.pages[requested_page][1:] # Parameters for reloadPage
+        self.pages[requested_page][0].reloadPage(*saved_info_params) # Refresh that page with todays data
+        self.pages[requested_page][0].progress_bar.grid_forget() # Stashes the loading bar for then `reload` is pressed
+        self.pages[requested_page][0].grid(row=0, column=0, sticky='nsew')
 
 
     def initiateWebScrape(self, page):
@@ -72,6 +74,11 @@ class MainApp(CTk):
             result = updateDatabase()
         except:
             popup.showError('A backend error occured. Call your son for support.')
+            self.loading_page.destroy()
+            self.showPage(page)
+            return
+            
+        self.createStashPages()
         
         # WiFi error handling
         if type(result) == str:

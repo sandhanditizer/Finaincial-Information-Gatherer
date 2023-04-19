@@ -68,7 +68,7 @@ class NYSEPage(CTkFrame):
         self.drawInteractiveWidget(data['Date'])
         self.drawTable(data)
         
-        self.master.pages['NYSE'][1] = target_date
+        self.master.pages['NYSE'][1] = data['Date']
     
     
     def checkAlerts(self):
@@ -129,11 +129,26 @@ class NYSEPage(CTkFrame):
             'New Highs', 'New Lows', 'Net (Highs/Lows)',
             '21-Day Average (Highs/Lows)', '63-Day Average (Highs/Lows)']
 
-        # Table tree
+        # Setting style based on color mode
         style = ttk.Style()
-        style.configure('my.Treeview', rowheight=60, font=('', 20), background='white', foreground='black', bordercolor='black', borderwidth=1)
-        style.map('my.Treeview', background=[('selected', 'grey')], foreground=[('selected', 'black')])
+        if self._get_appearance_mode() == 'dark':
+            background_color = '#1D3E53'
+            row_color = '#373737'
+            row_color2 = '#4B4B4B'
+            text_color = 'white'
+            highlight_color = '#476D7C'
+            style.configure('my.Treeview', rowheight=60, font=(None, 20), borderwidth=1, fieldbackground=background_color)
+        else:
+            background_color = '#E5E5E5'
+            row_color = '#F7F7F7'
+            row_color2 = '#D3D3D3'
+            text_color = 'black'
+            highlight_color = '#476D7C'
+            style.configure('my.Treeview', rowheight=60, font=(None, 20), borderwidth=1, fieldbackground=background_color)
+            
+        style.map('my.Treeview', background=[('selected', highlight_color)], foreground=[('selected', 'white')])
         
+        # Table tree
         self.table = ttk.Treeview(self, columns=('col1',), style='my.Treeview', show='tree')
 
         for i, label in enumerate(labels):
@@ -143,8 +158,8 @@ class NYSEPage(CTkFrame):
             elif i % 2 != 0:
                 self.table.insert('', 'end', text=label, values=[d], tags='odd')
                 
-        self.table.tag_configure('even', background='light grey', foreground='black')
-        self.table.tag_configure('odd', background='white', foreground='black')
+        self.table.tag_configure('even', background=row_color, foreground=text_color)
+        self.table.tag_configure('odd', background=row_color2, foreground=text_color)
         self.table.column('col1', anchor='e')
 
         self.table.grid(row=initrow, column=initcol, columnspan=6, rowspan=4, sticky='nsew', padx=10)

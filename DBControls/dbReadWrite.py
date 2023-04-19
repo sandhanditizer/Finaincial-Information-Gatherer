@@ -40,7 +40,7 @@ class Hedgeye(Base):
     ra_sell = sqla.Column('Range Asymmetry Sell (%)', sqla.Float)
         
 
-    def getData(date=None, ticker=None, most_recent=False):
+    def getData(date=None, ticker=None):
         """
         Gets data from database.\n
         Args:\n
@@ -52,7 +52,7 @@ class Hedgeye(Base):
             Query Object: If passing date and ticker.\n
         """
         with createSession() as session:
-            if date == '' or ticker == '':
+            if date == '' or ticker == '':  
                 raise ValueError('Date or ticker is an empty string.\n')
             
             if isinstance(date, str):
@@ -79,7 +79,7 @@ class Hedgeye(Base):
                     filter(Hedgeye.ticker == ticker).first()
                 return result
             
-            elif not date and not ticker and most_recent:
+            elif not date and not ticker:
                 most_recent_date = session.query(sqla.func.max(Hedgeye.date)).scalar()
                 result = session.query(Hedgeye).\
                     filter(Hedgeye.date == most_recent_date).\
@@ -169,7 +169,7 @@ class NASDAQ(Base):
     std_avg = sqla.Column('63-Day Average (Highs/Lows)', sqla.Float)
         
 
-    def getData(date, most_recent=False):
+    def getData(date=None):
         """
         Gets data from database.\n
         Args:\n
@@ -193,14 +193,11 @@ class NASDAQ(Base):
                     filter(NASDAQ.date == date).first()
                 return result
             
-            elif not date and most_recent:
+            else:
                 most_recent_date = session.query(sqla.func.max(NASDAQ.date)).scalar()
                 result = session.query(NASDAQ).\
                     filter(NASDAQ.date == most_recent_date).first()
                 return result
-            
-            else:
-                raise ValueError('Need date to complete data lookup.\n')
         
         
     def getAllDates():
@@ -290,7 +287,7 @@ class NYSE(Base):
     std_avg = sqla.Column('63-Day Average (Highs/Lows)', sqla.Float)
         
 
-    def getData(date, most_recent=False):
+    def getData(date=None):
         """
         Gets data from database.\n
         Args:\n
@@ -314,14 +311,11 @@ class NYSE(Base):
                     filter(NYSE.date == date).first()
                 return result
             
-            elif not date and most_recent:
+            else:
                 most_recent_date = session.query(sqla.func.max(NYSE.date)).scalar()
                 result = session.query(NYSE).\
                     filter(NYSE.date == most_recent_date).first()
                 return result
-            
-            else:
-                raise ValueError('Need date to complete data lookup.\n')
         
 
     def getAllDates():
