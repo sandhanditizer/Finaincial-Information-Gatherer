@@ -1,10 +1,10 @@
 {
     "CTk": {
-      "fg_color": ["gray50", "#103248"]
+      "fg_color": ["gray90", "#103248"]
     },
     
     "CTkToplevel": {
-      "fg_color": ["gray50", "#103248"]
+      "fg_color": ["gray90", "#103248"]
     },
 
     "CTkFrame": {
@@ -54,9 +54,9 @@
     "CTkProgressBar": {
       "corner_radius": 1000,
       "border_width": 0,
-      "fg_color": ["light grey", "light grey"],
-      "progress_color": ["grey", "white"],
-      "border_color": ["grey", "grey"]
+      "fg_color": ["#DAECF0", "#7195A3"],
+      "progress_color": ["grey50", "grey80"],
+      "border_color": ["#DAECF0", "#7195A3"]
     },
 
     "CTkSlider": {

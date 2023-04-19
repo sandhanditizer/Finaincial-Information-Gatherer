@@ -4,7 +4,7 @@ from GUI_nyse import NYSEPage
 from GUI_load import LoadingPage
 from GUI_popup import Popup
 from interface import updateDatabase
-from customtkinter import set_appearance_mode, set_default_color_theme, CTk
+from customtkinter import set_appearance_mode, set_default_color_theme, CTk, CENTER
 from threading import Thread
 
 
@@ -21,6 +21,7 @@ class MainApp(CTk):
         
         # Initial screen size for the Hedgeye page
         self.geometry('1280x845')
+        self.geometry(f'+220+140') # Widget shift
         self.title('FIG')
 
         self.loading_page = LoadingPage(self)
@@ -71,7 +72,7 @@ class MainApp(CTk):
         popup = Popup(self)
         
         try:
-            result = updateDatabase()
+            result = ''#updateDatabase()
         except:
             popup.showError('A backend error occured. Call your son for support.')
             self.loading_page.destroy()

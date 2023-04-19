@@ -54,11 +54,13 @@ class NYSEPage(CTkFrame):
 
     def gotoNASDAQ(self):
         self.master.geometry('740x845')
+        self.master.geometry(f'+490+140')
         self.master.showPage('NASDAQ')
         
         
     def gotoHedgeye(self):
         self.master.geometry('1280x845')
+        self.master.geometry(f'+220+140')
         self.master.showPage('Hedgeye')
         
         

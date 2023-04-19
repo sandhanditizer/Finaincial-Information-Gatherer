@@ -60,6 +60,7 @@ class NASDAQPage(CTkFrame):
         """Changes page to the NYSE Power Play Results page.\n"""
         
         self.master.geometry('740x845')
+        self.master.geometry(f'+490+140') # Shift
         self.master.showPage('NYSE')
         
         
@@ -67,6 +68,7 @@ class NASDAQPage(CTkFrame):
         """Changes page to the Hedgeye Daily Data page.\n"""
         
         self.master.geometry('1280x845')
+        self.master.geometry(f'+220+140')
         self.master.showPage('Hedgeye')
         
         

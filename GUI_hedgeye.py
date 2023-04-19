@@ -69,6 +69,7 @@ class HedgeyePage(CTkFrame):
         """Changes page to the NASDAQ Power Play Results page.\n"""
         
         self.master.geometry('740x845')
+        self.master.geometry(f'+490+140') # Shift
         self.master.showPage('NASDAQ')
         
 
@@ -76,6 +77,7 @@ class HedgeyePage(CTkFrame):
         """Changes page to the NYSE Power Play Results page.\n"""
         
         self.master.geometry('740x845')
+        self.master.geometry(f'+490+140') # Shift
         self.master.showPage('NYSE')
         
     

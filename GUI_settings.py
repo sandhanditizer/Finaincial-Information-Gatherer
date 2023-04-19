@@ -8,6 +8,7 @@ class Settings(CTkFrame):
         super().__init__(parent)
         self.top_level = CTkToplevel(parent)
         self.top_level.title('Settings')
+        self.top_level.geometry(f'+670+400') # Shift
                 
         self.top_level.grid_rowconfigure(0, minsize=10)
         
