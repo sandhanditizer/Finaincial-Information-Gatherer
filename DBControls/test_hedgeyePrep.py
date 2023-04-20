@@ -59,7 +59,15 @@ class TestOM_Delta(unittest.TestCase):
         result = compute_om_delta('2022-01-25', 'NIKK', 27299)
         self.assertEqual(result, None)
         
-    # I do not have enough data to test correct answers
+    def test_answer_NFLX(self):
+        """Found correct answer"""
+        result = compute_om_delta('2023-04-20', 'NFLX', 323.0)
+        self.assertEqual(result, 5.9)
+        
+    def test_answer_APPL(self):
+        """Found correct answer"""
+        result = compute_om_delta('2023-04-20', 'AAPL', 167.0)
+        self.assertEqual(result, 6.37)
     
 
 class TestTM_Delta(unittest.TestCase):
@@ -68,7 +76,15 @@ class TestTM_Delta(unittest.TestCase):
         result = compute_tm_delta('2022-01-25', 'NIKK', 27299)
         self.assertEqual(result, None)
         
-    # I do not have enough data to test correct answers
+    def test_answer_UST30Y(self):
+        """Found correct answer"""
+        result = compute_tm_delta('2023-04-20', 'UST30Y', 3.79)
+        self.assertEqual(result, 6.16)
+        
+    def test_answer_UST10Y(self):
+        """Found correct answer"""
+        result = compute_tm_delta('2023-04-20', 'UST10Y', 3.6)
+        self.assertEqual(result, 6.19)
     
 
 class TestSM_Delta(unittest.TestCase):

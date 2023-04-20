@@ -4,6 +4,13 @@ import re
 
 
 def formatDate(date):
+    """
+    Formates a series of dates into yyyy-mm-dd.\n
+    Args:\n
+        date (str): Any.\n
+    Returns:\n
+        str: yyyy-mm-dd
+    """
     date = date.strip()
     
     date_match = re.search(r'\d{1,2}/\d{1,2}/\d{2}', date)
@@ -29,7 +36,13 @@ def formatDate(date):
 
 
 def getDriver(browser):
-    """Creates a webdriver based off desired browser and returns the webdriver object"""
+    """
+    Creates a selenium driver based on what browser you have.\n
+    Args:\n
+        browser (str): Firefox, or Edge.\n
+    Returns:\n
+        webdriver
+    """
     if browser == 'Edge':
         options = webdriver.EdgeOptions()
         options.add_argument('-headless') # Prevents browser pop-up
@@ -48,8 +61,15 @@ def removeParentheses(string):
 
 
 
-def extract(string):
-    blocks = string.strip().split('\n\n\n\n')
+def extract(data):
+    """
+    Extracts the messy data from Hedgeyes website and nicely formats it.\n
+    Args:\n
+        data (str): Data from website.\n
+    Returns:\n
+        list: List of dictionary data.
+    """
+    blocks = data.strip().split('\n\n\n\n')
     
     result = []
     for i in range(len(blocks)):
@@ -59,15 +79,16 @@ def extract(string):
                            "Description": pieces[2].upper(), 
                            "Buy": float(pieces[4].replace(',', '')), 
                            "Sell": float(pieces[5].replace(',', '')), 
-                           "Close": float(pieces[6].replace(',', ''))
-                           })
+                           "Close": float(pieces[6].replace(',', ''))})
     
     return result
 
 
 
 def clean(data):
-    """Removes characters from scraped data that should not be in the database"""
+    """
+    Removes characters from scraped data that should not be in the database.
+    """
     for key in data:
         value = str(data[key])
         value = ''.join(filter(lambda x: x.isdigit() or x in ['-', '.'], value))

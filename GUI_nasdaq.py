@@ -37,8 +37,8 @@ class NASDAQPage(CTkFrame):
         button3.grid(row=1, column=2, padx=10, pady=10, sticky='nsew')
         
         # Check alerts button
-        button4 = CTkButton(self, text='Alerts', command=self.checkAlerts, font=('', 16), width=80)
-        button4.grid(row=0, column=4, padx=10, pady=10, sticky='e')
+        self.button4 = CTkButton(self, text='Alerts', command=lambda: self.checkAlerts(silent=False), font=('', 16), width=80)
+        self.button4.grid(row=0, column=4, padx=10, pady=10, sticky='e')
         
         # Date
         date_lable = CTkLabel(self, text='Date:', font=('', 17))
@@ -47,8 +47,11 @@ class NASDAQPage(CTkFrame):
         
 
     def reloadThread(self):
-        """Attemps to get new data from websites and store it in database.\n"""
-        
+        """
+        Requests backend to fetch new data if the database is not updated with todays data.
+        It will then display the page that the user was on. 
+        Progress bar is started and will disappear when reload is finished. 
+        """
         thread = Thread(target=self.master.initiateWebScrape, args=('NASDAQ',))
         thread.start()
         
@@ -57,28 +60,69 @@ class NASDAQPage(CTkFrame):
         
 
     def gotoNYSE(self):
-        """Changes page to the NYSE Power Play Results page.\n"""
-        
+        """
+        Switches page to the NYSE Power Play Results page.
+        """
         self.master.geometry('740x845')
         self.master.geometry(f'+490+140') # Shift
         self.master.showPage('NYSE')
         
         
     def gotoHedgeye(self):
-        """Changes page to the Hedgeye Daily Data page.\n"""
-        
+        """
+        Switches page to the Hedgeyes daily data page.
+        """        
         self.master.geometry('1280x845')
-        self.master.geometry(f'+220+140')
+        self.master.geometry(f'+220+140') # Shift
         self.master.showPage('Hedgeye')
+        
+        
+    def checkAlerts(self, silent):
+        
+        """
+        Displays an alert if any or all values for the 10-Day Breakaway Momentum, 20-Day Breakaway Momentum, 
+        5-Day Advance/Decline Thrust (%), and/or 5-Day Up/Down Volume Thrust (%) go below or above a set threshold.\n
+        Args:\n
+            silent: If true, the function will check alerts without notifying user.
+        """
+        message = ''
+        
+        if self.data['10-Day Breakaway Momentum'] > 1.97:
+            message += '10-Day Breakway Momentum passed above set threshold of 1.97\n\n'
+            
+        if self.data['20-Day Breakaway Momentum'] > 1.72:
+            message += '20-Day Breakway Momentum passed above set threshold of 1.72\n\n'
+            
+        if self.data['5-Day Advance/Decline Thrust (%)'] < 19.05:
+            message += '5-Day Advance/Decline Thrust passed below set threshold of 19.05%\n\n'
+        if self.data['5-Day Advance/Decline Thrust (%)'] > 73.66:
+            message += '5-Day Advance/Decline Thrust passed above set threshold of 73.66%\n\n'
+            
+        if self.data['5-Day Up/Down Volume Thrust (%)'] < 16.41:
+            message += '5-Day Up/Down Volume Thrust passed below set threshold of 16.41%\n\n'
+        if self.data['5-Day Up/Down Volume Thrust (%)'] > 77.88:
+            message += '5-Day Up/Down Volume Thrust passed above set threshold of 77.88%\n\n'
+            
+        if message != '':
+            self.button4 = CTkButton(self, text='Alerts', command=lambda: self.checkAlerts(silent=False), 
+                                     font=('', 16), width=80, border_color='#D6544B', border_width=3)
+            self.button4.grid(row=0, column=4, padx=10, pady=10, sticky='e')
+            
+        if not silent:
+            popup = Popup(self)
+            if message != '':
+                popup.showInfo(message)
+            else:
+                popup.showInfo(f'Values for the\n10-Day BAM\n20-Day BAM\n5-Day ADT\n5-Day UDVT\ndid not break set threasholds for {self.data["Date"]}!')
         
         
     def reloadPage(self, target_date=None):
         """
-        Gets specified data or most recent data from database.\n
+        Refreshes the current page with updated information. It will save where you are
+        on the page (what day and what ticker you are on).\n
         Args:\n
-            target_date (string, optional): Date that user chooses. Defaults to None.\n
+            target_date (str, optional): If not None, will refresh the page to display the tickers for that date. Defaults to None.
         """
-        
         data = summonNasdaqData(date=target_date)
         self.data = data
         self.drawInteractiveWidget(data['Date'])
@@ -86,49 +130,27 @@ class NASDAQPage(CTkFrame):
         
         # This saves where you are on the page so the user doesnt lose where they are if the navigate to other pages
         self.master.pages['NASDAQ'][1] = data['Date']
-    
-    
-    def checkAlerts(self):
-        """Displays an alert if any or all values for the 10-Day Breakaway Momentum, 20-Day Breakaway Momentum, 
-        5-Day Advance/Decline Thrust (%), and/or 5-Day Up/Down Volume Thrust (%) hit a particular threshold.\n"""
         
-        message = ''
+        # Will silently check threshold alerts, if there are any it will color the border of the alert button red
+        self.checkAlerts(silent=True)
         
-        if self.data['10-Day Breakaway Momentum'] > 1.97:
-            message += '10-Day Breakway Momentum\n(PASSED ABOVE THRESHOLD OF 1.97)\n\n'
-            
-        if self.data['20-Day Breakaway Momentum'] > 1.72:
-            message += '20-Day Breakway Momentum\n(PASSED ABOVE THRESHOLD OF 1.72)\n\n'
-            
-        if self.data['5-Day Advance/Decline Thrust (%)'] < 19.05:
-            message += '5-Day Advance/Decline Thrust\n(PASSED BELOW THRESHOLD OF 19.05%)\n\n'
-        if self.data['5-Day Advance/Decline Thrust (%)'] > 73.66:
-            message += '5-Day Advance/Decline Thrust\n(PASSED ABOVE THRESHOLD OF 73.66%)\n\n'
-            
-        if self.data['5-Day Up/Down Volume Thrust (%)'] < 16.41:
-            message += '5-Day Up/Down Volume Thrust\n(PASSED BELOW THRESHOLD OF 16.41%)\n\n'
-        if self.data['5-Day Up/Down Volume Thrust (%)'] > 77.88:
-            message += '5-Day Up/Down Volume Thrust\n(PASSED ABOVE THRESHOLD OF 77.88%)\n\n'
-            
-        popup = Popup(self)
-        if message != '':
-            popup.showInfo(message)
-        else:
-            popup.showInfo('No new alerts')
               
     
     def dateAction(self, date):
         """
-        Changes the page accordingly when choosing a different date to look at.\n
-        Takes in an event from the ComboBox.\n
+        If the user interacts with the date drop down, this function is called to manipulate the displayed page.\n
+        Args:\n
+            date (str): Date that was clicked on by user.
         """
-
         self.reloadPage(target_date=date)
     
     
     def drawInteractiveWidget(self, date_choice):
-        """Draws the date displayed in the combo box in the date selector.\n"""
-        
+        """
+        Draws the correct information on the display when the user interacts with it.\n
+        Args:\n
+            date_choice (str, optional): Date that was clicked on by user. Defaults to None.
+        """
         # Date in entry box        
         self.date_drop_down = CTkComboBox(self, values=self.dates, command=self.dateAction, width=140, justify='center', font=('', 14))
         if date_choice:
@@ -138,12 +160,11 @@ class NASDAQPage(CTkFrame):
         
     def drawTable(self, data):
         """
-        Updates table with data passed in.\n
+        Updates shown table with data that is passed in.\n
         Args:\n
-            data (dict): Data to draw table.\n
+            data (dict): Data that is displayed on the table.
         """
-           
-        # Top left of the table is where to specify location
+        # Top left corner positions the label and table without adjusting it individually
         initrow = 4
         initcol = 0
         

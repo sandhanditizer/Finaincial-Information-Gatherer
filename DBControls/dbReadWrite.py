@@ -4,7 +4,7 @@ from datetime import datetime
 
 
 Base = declarative_base()
-db_filename = 'DBControls/database.db'
+db_filename = 'DBControls/market_data.db'
 
 
 def createSession():
@@ -51,7 +51,7 @@ class Hedgeye(Base):
             list: If passing only a date, ticker, or most_recent=True. If most_recent=True, date and ticker == None.\n
             Query Object: If passing date and ticker.\n
         """
-        with createSession() as session:
+        with createSession() as session:                  
             if date == '' or ticker == '':  
                 raise ValueError('Date or ticker is an empty string.\n')
             
@@ -105,8 +105,8 @@ class Hedgeye(Base):
         return dates
         
         
-    def writeData(date, ticker, description, buy, sell, close, delta_ww, od_delta, 
-                   ow_delta, om_delta, tm_delta, sm_delta, oy_delta, ra_buy, ra_sell):
+    def writeData(date, ticker, description, buy, sell, close, delta_ww, od_delta, ow_delta, om_delta, 
+                  tm_delta, sm_delta, oy_delta, ra_buy, ra_sell):
         """
         Writes given data to database.\n
         Args:\n
@@ -127,17 +127,18 @@ class Hedgeye(Base):
             ra_sell (float): Range asymmetry sell.\n
         """
         with createSession() as session:
-            try:
-                new_row = Hedgeye(date=date, ticker=ticker, description=description, buy=buy, 
-                                        sell=sell, close=close, delta_ww=delta_ww, od_delta=od_delta, 
-                                        ow_delta=ow_delta, om_delta=om_delta, tm_delta=tm_delta, 
-                                        sm_delta=sm_delta, oy_delta=oy_delta, ra_buy=ra_buy, ra_sell=ra_sell)
-                session.add(new_row)
-            except:
-                session.rollback()
-                raise RuntimeError('Cannot add new data to Hedgeye table.\n')
+            if Hedgeye.getData(date=date, ticker=ticker) == None:
+                try:
+                    new_row = Hedgeye(date=date, ticker=ticker, description=description, buy=buy, 
+                                            sell=sell, close=close, delta_ww=delta_ww, od_delta=od_delta, 
+                                            ow_delta=ow_delta, om_delta=om_delta, tm_delta=tm_delta, 
+                                            sm_delta=sm_delta, oy_delta=oy_delta, ra_buy=ra_buy, ra_sell=ra_sell)
+                    session.add(new_row)
+                except:
+                    session.rollback()
+                    raise RuntimeError('Cannot add new data to Hedgeye table.\n')
             
-            session.commit()
+                session.commit()
             
 
 # ---------------------------------------------------------------------------------------------
@@ -244,18 +245,19 @@ class NASDAQ(Base):
             std_avg (float): 63-Day Average.\n
         """
         with createSession() as session:
-            try:
-                new_row = NASDAQ(date=date, advancing_V=advancing_V, declining_V=declining_V, total_V=total_V, delta_V=delta_V, 
-                                    close=close, upside_day=upside_day, downside_day=downside_day, advances=advances, 
-                                    declines=declines, net_ad=net_ad, td_breakaway=td_breakaway, Td_breakaway=Td_breakaway, 
-                                    ad_ratio=ad_ratio, ad_thrust=ad_thrust, fd_ad_thrust=fd_ad_thrust, fd_ud_V_thrust=fd_ud_V_thrust, 
-                                    new_highs=new_highs, new_lows=new_lows, net_hl=net_hl, tod_avg=tod_avg, std_avg=std_avg)
-                session.add(new_row)
-            except:
-                session.rollback()
-                raise RuntimeError('Cannot add new data to NASDAQ table.\n')
-            
-            session.commit()
+            if NASDAQ.getData(date=date) == None:
+                try:
+                    new_row = NASDAQ(date=date, advancing_V=advancing_V, declining_V=declining_V, total_V=total_V, delta_V=delta_V, 
+                                        close=close, upside_day=upside_day, downside_day=downside_day, advances=advances, 
+                                        declines=declines, net_ad=net_ad, td_breakaway=td_breakaway, Td_breakaway=Td_breakaway, 
+                                        ad_ratio=ad_ratio, ad_thrust=ad_thrust, fd_ad_thrust=fd_ad_thrust, fd_ud_V_thrust=fd_ud_V_thrust, 
+                                        new_highs=new_highs, new_lows=new_lows, net_hl=net_hl, tod_avg=tod_avg, std_avg=std_avg)
+                    session.add(new_row)
+                except:
+                    session.rollback()
+                    raise RuntimeError('Cannot add new data to NASDAQ table.\n')
+                
+                session.commit()
 
 
 # ---------------------------------------------------------------------------------------------
@@ -362,17 +364,18 @@ class NYSE(Base):
             std_avg (float): 63-Day Average.\n
         """
         with createSession() as session:
-            try:
-                new_row = NYSE(date=date, advancing_V=advancing_V, declining_V=declining_V, total_V=total_V, 
-                            delta_V=delta_V, close=close, upside_day=upside_day, downside_day=downside_day, 
-                            advances=advances, declines=declines, net_ad=net_ad, td_breakaway=td_breakaway, 
-                            Td_breakaway=Td_breakaway, ad_ratio=ad_ratio, ad_thrust=ad_thrust, fd_ad_thrust=fd_ad_thrust,
-                            fd_ud_V_thrust=fd_ud_V_thrust, new_highs=new_highs, new_lows=new_lows, net_hl=net_hl, 
-                            tod_avg=tod_avg, std_avg=std_avg)
-                
-                session.add(new_row)
-            except:
-                session.rollback()
-                raise RuntimeError('Cannot add new data to NYSE table.\n')
-                
-            session.commit()
+            if NYSE.getData(date=date) == None:
+                try:
+                    new_row = NYSE(date=date, advancing_V=advancing_V, declining_V=declining_V, total_V=total_V, 
+                                delta_V=delta_V, close=close, upside_day=upside_day, downside_day=downside_day, 
+                                advances=advances, declines=declines, net_ad=net_ad, td_breakaway=td_breakaway, 
+                                Td_breakaway=Td_breakaway, ad_ratio=ad_ratio, ad_thrust=ad_thrust, fd_ad_thrust=fd_ad_thrust,
+                                fd_ud_V_thrust=fd_ud_V_thrust, new_highs=new_highs, new_lows=new_lows, net_hl=net_hl, 
+                                tod_avg=tod_avg, std_avg=std_avg)
+                    
+                    session.add(new_row)
+                except:
+                    session.rollback()
+                    raise RuntimeError('Cannot add new data to NYSE table.\n')
+                    
+                session.commit()

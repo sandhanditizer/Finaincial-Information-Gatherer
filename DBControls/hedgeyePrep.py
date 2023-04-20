@@ -267,17 +267,15 @@ def add_row(date, ticker, description, buy, sell, close):
     if close == 0: # Prevents future errors
         raise ZeroDivisionError('Close value is 0. Cannot add new row to Hedgeye table.\n')
     
+    weekweek = compute_delta_ww(date, ticker, buy, sell)
+    oneday = compute_od_delta(date, ticker, close)
+    oneweek = compute_ow_delta(date, ticker, close)
+    onemonth = compute_om_delta(date, ticker, close)
+    threemonth = compute_tm_delta(date, ticker, close)
+    sixmonth = compute_sm_delta(date, ticker, close)
+    oneyear = compute_oy_delta(date, ticker, close)
+    rab = compute_ra_buy(buy, close)
+    ras = compute_ra_sell(sell, close)
     
-    if Hedgeye.getData(date=date, ticker=ticker) == None: # Prevents duplicating data
-        weekweek = compute_delta_ww(date, ticker, buy, sell)
-        oneday = compute_od_delta(date, ticker, close)
-        oneweek = compute_ow_delta(date, ticker, close)
-        onemonth = compute_om_delta(date, ticker, close)
-        threemonth = compute_tm_delta(date, ticker, close)
-        sixmonth = compute_sm_delta(date, ticker, close)
-        oneyear = compute_oy_delta(date, ticker, close)
-        rab = compute_ra_buy(buy, close)
-        ras = compute_ra_sell(sell, close)
-        
-        Hedgeye.writeData(date, ticker, description, buy, sell, close, weekweek, oneday, 
-                        oneweek, onemonth, threemonth, sixmonth, oneyear, rab, ras)
+    Hedgeye.writeData(date, ticker, description, buy, sell, close, weekweek, oneday, 
+                    oneweek, onemonth, threemonth, sixmonth, oneyear, rab, ras)

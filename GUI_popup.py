@@ -7,21 +7,17 @@ class Popup(CTkFrame):
         super().__init__(parent)
         
     def showWarning(self, message):
-        """Displays the warning popup with whatever message you include.\n"""
-        
+        """Displays the warning popup with whatever message you include."""
         messagebox.showwarning("Warning", message)
         
     def showInfo(self, message):
-        """Displays the information popup with whatever message you include.\n"""
-        
+        """Displays the information popup with whatever message you include."""
         messagebox.showinfo("Info", message)
         
     def showError(self, message):
-        """Displays the error popup with whatever message you include.\n"""
-        
+        """Displays the error popup with whatever message you include."""
         messagebox.showerror("Error", message)
         
     def showQuestioning(self, message):
-        """Displays `YES` or `NO` prompt with whatever message you include.\n"""
-        
+        """Displays `YES` or `NO` prompt with whatever message you include."""
         return messagebox.askyesno('Change Credentialing', message)

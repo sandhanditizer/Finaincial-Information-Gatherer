@@ -3,10 +3,10 @@ from interface import summonHedgeyeData
 from customtkinter import CTkFrame, CTkLabel, CTkButton, CTkEntry, CTkComboBox, CTkProgressBar, END
 from tkinter import ttk
 from datetime import datetime
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
-import matplotlib.dates as mdates
 from threading import Thread
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 
 
 class HedgeyePage(CTkFrame):
@@ -56,8 +56,11 @@ class HedgeyePage(CTkFrame):
             
 
     def reloadThread(self):
-        """Attemps to get new data from websites and store it in database.\n"""
-        
+        """
+        Requests backend to fetch new data if the database is not updated with todays data.
+        It will then display the page that the user was on. 
+        Progress bar is started and will disappear when reload is finished. 
+        """
         thread = Thread(target=self.master.initiateWebScrape, args=('Hedgeye',))
         thread.start()
         
@@ -66,15 +69,18 @@ class HedgeyePage(CTkFrame):
 
 
     def gotoNASDAQ(self):
-        """Changes page to the NASDAQ Power Play Results page.\n"""
-        
+        """
+        Switches page to the NASDAQ Power Play Results page.
+        """
         self.master.geometry('740x845')
         self.master.geometry(f'+490+140') # Shift
         self.master.showPage('NASDAQ')
         
 
     def gotoNYSE(self):
-        """Changes page to the NYSE Power Play Results page.\n"""
+        """
+        Switches page to the NYSE Power Play Results page.
+        """
         
         self.master.geometry('740x845')
         self.master.geometry(f'+490+140') # Shift
@@ -82,39 +88,49 @@ class HedgeyePage(CTkFrame):
         
     
     def openSettings(self):
+        """
+        Displays settings widget. Will self close if a change is made.
+        """
         Settings(self.master)
         
         
     def reloadPage(self, target_date=None, target_tick=None):
         """
-        Reloads all data on the page given that the user selects a different date or ticker to look at.\n
+        Refreshes the current page with updated information. It will save where you are
+        on the page (what day and what ticker you are on).\n
         Args:\n
-            target_date (string, optional): Date that user chooses. Defaults to None.\n
-            target_tick (string, optional): Ticker that user chooses. Defaults to None.\n
+            target_date (str, optional): If not None, will refresh the page to display the tickers for that date. Defaults to None.\n
+            target_tick (str, optional): If not None, will refresh the page to display that ticker. Defaults to None.
         """
-        
-        # Gets most recent information on startup because tdate and ttick are None
+        # If target_date and target_tick == None -> data = most recent data from db
         data = summonHedgeyeData(date=target_date, ticker=target_tick)
                 
         if len(data) > 1:
             self.data = data # For updating the 10s/2s spread and tickerAction function
-            self.tickers = [d['Ticker'] for d in data[0:-1]] # Exclude the 10s/2s data
+            self.tickers = [d['Ticker'] for d in data[0:-1]] # Excludes the 10s/2s data
         
         # Display the first bout of data in the list
         self.drawTable(data[0])
         self.drawGraph(data[0]['Ticker'])
         self.drawInteractiveWidgets(self.tickers, data[0]['Description'], target_date, data[0]['Ticker'])
         
-        # This saves where you are on the page so the user doesnt lose where they are if the navigate to other pages
+        # This saves where you are on the page
+        # This allows you to navigate to other pages or press `reload` without losing your spot
         self.master.pages['Hedgeye'][1] = data[0]['Date']
         self.master.pages['Hedgeye'][2] = data[0]['Ticker']
         
 
         
-    def findDictByTick(self, dlist, ticker):
-        """Finds the specified ticker data in the list of dictionaries.\n"""
-        
-        for dict_item in dlist:
+    def findDictByTick(self, list_of_dictionaries, ticker):
+        """
+        Finds the associated ticker data in the list of dictionaries given the ticker name.\n
+        Args:\n
+            list_of_dictionaries (list): List of all tickers and their associated data for X day.\n
+            ticker (str): Ticker name that you want data for.\n
+        Returns:\n
+            dict: If ticker is found it returns its associated data. Else it returns None.\n
+        """
+        for dict_item in list_of_dictionaries:
             if dict_item['Ticker'] == ticker:
                 return dict_item
             
@@ -123,33 +139,32 @@ class HedgeyePage(CTkFrame):
         
     def tickerAction(self, ticker):
         """
-        Changes the page accordingly when choosing a different ticker to look at.\n
-        Takes in an event from the ComboBox.\n
+        If the user interacts with the ticker drop down, this function is called to manipulate the displayed page.\n
+        Args:\n
+            ticker (str): Ticker that was clicked on by user.
         """
-        
         target_dict = self.findDictByTick(self.data, ticker)
         self.reloadPage(target_date=target_dict['Date'], target_tick=target_dict['Ticker'])
         
         
     def dateAction(self, date):
         """
-        Changes the page accordingly when choosing a different date to look at.\n
-        Takes in an event from the ComboBox.\n
+        If the user interacts with the date drop down, this function is called to manipulate the displayed page.\n
+        Args:\n
+            date (str): Date that was clicked on by user.
         """
-        
         self.reloadPage(target_date=date)
             
             
     def drawInteractiveWidgets(self, tickers, description, date_choice=None, ticker_choice=None):
         """
-        Redraws the date and ticker combo boxes.\n
+        Draws the correct information on the display when the user interacts with it.\n
         Args:\n
-            tickers (string)
-            description (string):
-            date_choice (string, optional): Date that user chooses. Defaults to None.
-            ticker_choice (string, optional): Ticker that user chooses. Defaults to None.
+            tickers (list): List of all tickers that are associated with X day. 
+            description (str): Full company name that is represented by the ticker.\n
+            date_choice (str, optional): Date that was clicked on by user. Defaults to None.\n
+            ticker_choice (str, optional): Ticker that was clicked on by user. Defaults to None.
         """
-
         # Date in entry box
         self.date_drop_down = CTkComboBox(self, values=self.dates, command=self.dateAction, width=140, justify='center', font=('', 14))
         if date_choice:
@@ -169,12 +184,11 @@ class HedgeyePage(CTkFrame):
         
     def drawTable(self, data):    
         """
-        Updates table with data passed in.\n
+        Updates shown table with data that is passed in.\n
         Args:\n
-            data (dict): Data to draw table.\n
+            data (dict): Data that is displayed on the table.
         """
-           
-        # Top left of the table is where to specify location
+        # Top left corner positions the label and table without adjusting it individually
         initrow = 4
         initcol = 6
         
@@ -236,11 +250,11 @@ class HedgeyePage(CTkFrame):
 
     def drawGraph(self, ticker):
         """
-        Updates the graph given a specified ticker.\n
+        Displays the close data for the specified ticker.\n
         Args:\n
-            ticker (string): 'ABC...Z'.\n
+            ticker (str): Close data that will be shown for this ticker.
         """
-        # Top left of the table is where to specify location
+        # Top left corner positions the label and table without adjusting it individually
         initrow = 4
         initcol = 0
         
@@ -251,8 +265,7 @@ class HedgeyePage(CTkFrame):
         self.graph_lable.grid(row=(initrow - 1), column=initcol, columnspan=6, sticky='ew', padx=10)
         self.graph_lable.insert(END, 'Trade Price                  ')    
         
-        
-        # Setting color scheme
+        # Setting color scheme based on color mode of computer
         if self._get_appearance_mode() == 'dark':
             face_color = '#103248'
             label_color = 'white'
@@ -270,8 +283,9 @@ class HedgeyePage(CTkFrame):
         ax = fig.add_subplot(111)
         ax.set_facecolor(face_color)
         
+        # Gets the data to be plotted
         data = summonHedgeyeData(ticker=ticker)
-        dates = [datetime.strptime(d['Date'], '%Y-%m-%d') for d in data[:-1]] # Exclude 10s/2s data        
+        dates = [datetime.strptime(d['Date'], '%Y-%m-%d') for d in data[:-1]] # Excludes 10s/2s data        
         y1 = [d['Buy'] for d in data[0:-1]]
         y2 = [d['Sell'] for d in data[0:-1]]
         y3 = [d['Close'] for d in data[0:-1]]

@@ -236,23 +236,22 @@ def add_row(date, advancing_V, declining_V, close, advances, declines, new_highs
     if declines == 0: # Prevents future errors
         raise ZeroDivisionError('Declines value is 0. Cannot add new row to NYSE table.\n')
     
-    if NYSE.getData(date=date) == None:
-        total_V = compute_total_volume(advancing_V, declining_V)
-        delta_V = compute_delta_volume(date, total_V)
-        upside_day = compute_upside_day(advancing_V, declining_V)
-        downside_day = compute_downside_day(advancing_V, declining_V)
-        net_ad = compute_net_advance_decline(advances, declines)
-        td_breakaway = compute_td_breakaway_momentum(date, advances, declines)
-        Td_breakaway = compute_Td_breakaway_momentum(date, advances, declines)
-        ad_ratio = compute_advance_decline_ratio(advances, declines)
-        ad_thrust = compute_advance_decline_thrust(advances, declines)
-        fd_ad_thrust = compute_fd_advance_decline_thrust(date, advances, declines)
-        fd_ud_volume = compute_fd_up_down_volume(date, advancing_V, declining_V)
-        net_hl = compute_net_highs_lows(new_highs, new_lows)
-        tod_avg_hl = compute_tod_avg_highs_lows(date, net_hl)
-        std_avg_hl = compute_std_avg_highs_lows(date, net_hl)
-        
-        NYSE.writeData(date, advancing_V, declining_V, total_V, delta_V, close, upside_day, 
-                        downside_day, advances, declines, net_ad, td_breakaway, Td_breakaway,
-                        ad_ratio, ad_thrust, fd_ad_thrust, fd_ud_volume, new_highs, new_lows, 
-                        net_hl, tod_avg_hl, std_avg_hl)
+    total_V = compute_total_volume(advancing_V, declining_V)
+    delta_V = compute_delta_volume(date, total_V)
+    upside_day = compute_upside_day(advancing_V, declining_V)
+    downside_day = compute_downside_day(advancing_V, declining_V)
+    net_ad = compute_net_advance_decline(advances, declines)
+    td_breakaway = compute_td_breakaway_momentum(date, advances, declines)
+    Td_breakaway = compute_Td_breakaway_momentum(date, advances, declines)
+    ad_ratio = compute_advance_decline_ratio(advances, declines)
+    ad_thrust = compute_advance_decline_thrust(advances, declines)
+    fd_ad_thrust = compute_fd_advance_decline_thrust(date, advances, declines)
+    fd_ud_volume = compute_fd_up_down_volume(date, advancing_V, declining_V)
+    net_hl = compute_net_highs_lows(new_highs, new_lows)
+    tod_avg_hl = compute_tod_avg_highs_lows(date, net_hl)
+    std_avg_hl = compute_std_avg_highs_lows(date, net_hl)
+    
+    NYSE.writeData(date, advancing_V, declining_V, total_V, delta_V, close, upside_day, 
+                    downside_day, advances, declines, net_ad, td_breakaway, Td_breakaway,
+                    ad_ratio, ad_thrust, fd_ad_thrust, fd_ud_volume, new_highs, new_lows, 
+                    net_hl, tod_avg_hl, std_avg_hl)

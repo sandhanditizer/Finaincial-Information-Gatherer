@@ -5,9 +5,9 @@ from DBControls.nysePrep import add_row as addNyseRow
 from DBControls.dbReadWrite import Hedgeye, NASDAQ, NYSE
 from socket import create_connection
 from threading import Thread
-import datetime
+from tzlocal import get_localzone
+from datetime import datetime, timedelta
 import json
-
 
 
 # ------------------------------------------------------------------------------
@@ -17,10 +17,9 @@ def updateHedgeyeTable():
     """
     Grabs data from Hedgeye's website and stores new data in the database.\n
     Returns:\n
-        string: Error.\n
-        0: If success\n
+        str: Error.\n
+        0: If success
     """
-    
     wc = HedgeyeWebController()
     data = wc.scrapeData()
     
@@ -29,15 +28,9 @@ def updateHedgeyeTable():
     else:
         try:
             date = data.pop() # Removes date information
-            if Hedgeye.getData(date=date) == []: # No data in database for this date - add new data
-                for d in data:
-                    addHedgeyeRow(date=date, 
-                            ticker=d['Ticker'], 
-                            description=d['Description'], 
-                            buy=d['Buy'], 
-                            sell=d['Sell'],
-                            close=d['Close']
-                            )
+            for d in data:
+                addHedgeyeRow(date=date, ticker=d['Ticker'], description=d['Description'], 
+                        buy=d['Buy'], sell=d['Sell'], close=d['Close'])
         except:
             return 'Cannot load newest Hedgeye data into database.'
         
@@ -48,10 +41,9 @@ def updateNasdaqNyseTables():
     """
     Grabs data from the Wallstreet Journal Market Diaries and Yahoo websites and stores new data in the database.\n
     Returns:\n
-        string: Error.\n
-        0: If success\n
+        str: Error.\n
+        0: If success
     """
-    
     wc = CompositesWebController()
     data = wc.scrapeData()
     
@@ -60,27 +52,15 @@ def updateNasdaqNyseTables():
     else:
         try:
             date = data['Date']
-            if NASDAQ.getData(date=date) == None: # No data in database for this date - add new data
-                addNasdaqRow(date=date, 
-                        advancing_V=data['NASDAQ Advancing Volume'], 
-                        declining_V=data['NASDAQ Declining Volume'],
-                        close=data['NASDAQ Close'],
-                        advances=data['NASDAQ Advances'],
-                        declines=data['NASDAQ Declines'], 
-                        new_highs=data['NASDAQ New Highs'],
-                        new_lows=data['NASDAQ New Lows']
-                        )
+            addNasdaqRow(date=date, 
+                    advancing_V=data['NASDAQ Advancing Volume'], declining_V=data['NASDAQ Declining Volume'],
+                    close=data['NASDAQ Close'], advances=data['NASDAQ Advances'], declines=data['NASDAQ Declines'], 
+                    new_highs=data['NASDAQ New Highs'], new_lows=data['NASDAQ New Lows'])
                 
-            if NYSE.getData(date=date) == None: # No data in database for this date - add new data
-                addNyseRow(date=date, 
-                        advancing_V=data['NYSE Advancing Volume'], 
-                        declining_V=data['NYSE Declining Volume'],
-                        close=data['NYSE Close'],
-                        advances=data['NYSE Advances'],
-                        declines=data['NYSE Declines'], 
-                        new_highs=data['NYSE New Highs'],
-                        new_lows=data['NYSE New Lows']
-                        )
+            addNyseRow(date=date, 
+                    advancing_V=data['NYSE Advancing Volume'], declining_V=data['NYSE Declining Volume'],
+                    close=data['NYSE Close'], advances=data['NYSE Advances'], declines=data['NYSE Declines'], 
+                    new_highs=data['NYSE New Highs'], new_lows=data['NYSE New Lows'])
         except:
             return 'Cannot load newest NYSE or NASDAQ data into database.'
         
@@ -106,7 +86,7 @@ def WiFiConnection():
     """
     Checks WiFi connection.\n
     Returns:\n
-        bool: True = WiFi connected.\n
+        bool: True = WiFi connected.
     """
     try:
         with create_connection(("www.google.com", 80)) as _:
@@ -116,20 +96,23 @@ def WiFiConnection():
     
 
 def updateDatabase():
-    date = datetime.date.today()
-    todays_date = datetime.datetime.strftime(date, '%Y-%m-%d')
-    yesterdays_date = datetime.datetime.strftime(date - datetime.timedelta(days=1), '%Y-%m-%d')
+    """
+    Requests data from websites and handles errors for backend side.\n
+    Returns:\n
+        list: If [0,0] total success, if either 0 is a message then that message is an error that will be displayed.
+    """
+    current_time = datetime.now(get_localzone()) # Gets the time of where the computer is
+    todays_date = datetime.strftime(current_time.date(), '%Y-%m-%d')
+    yesterdays_date = datetime.strftime(current_time.date() - timedelta(days=1), '%Y-%m-%d')
     j1, j2 = False, False
     
     if WiFiConnection():
-        # Not up-to-date and it is not saturday or sunday
-        if todays_date != Hedgeye.getAllDates()[-1] and date.weekday() != 5 and date.weekday() != 6:
+        if todays_date != Hedgeye.getAllDates()[-1]:
             thread1 = ThreadUpdate(target=updateHedgeyeTable)
             thread1.start()
             j1 = True
 
-        # Not up-to-date and it is not sunday
-        if yesterdays_date != NASDAQ.getAllDates()[-1] and date.weekday() != 6: 
+        if NASDAQ.getData(date=yesterdays_date) == None or (current_time.hour > 16 and NASDAQ.getData(date=todays_date) == None):
             thread2 = ThreadUpdate(target=updateNasdaqNyseTables)
             thread2.start()
             j2 = True
@@ -157,16 +140,14 @@ def updateDatabase():
     
 def summonHedgeyeData(date=None, ticker=None, all_dates=False):
     """
-    Retrieves data from database in accordance with the request.\n
-    If date and not ticker, returns all data associated with that date.\n
-    If date and ticker, returns data associated with that date and specific ticker.\n
-    If not date and ticker, returns all data for that specific ticker.\n
-    If not date and not ticker, grabs the most recent data.\n
+    Gets desired data from database and formats it for GUI use.
+    Reference the Hedgeye class in dbReadWrite.py for how getData is used.\n
     Args:\n
-        date (string, optional): 'yyyy-mm-dd'. Defaults to None.\n
-        ticker (string, optional): 'ABC...Z'. Defaults to None.\n
+        date (str, optional): 'yyyy-mm-dd'. Defaults to None.\n
+        ticker (str, optional): 'ABC...Z'. Defaults to None.\n
+        all_dates (bool, optional): If true, will get all unique dates in database. Defaults to False.\n
     Returns:\n
-        list: List of dictionaries that hold data.\n
+        list: List of dictionaries with data.
     """
     if all_dates:
         return Hedgeye.getAllDates()
@@ -195,8 +176,7 @@ def summonHedgeyeData(date=None, ticker=None, all_dates=False):
                  '1-Year Delta (%)': r.oy_delta,
                  'Range Asym - Buy (%)': r.ra_buy,
                  'Range Asym - Sell (%)': r.ra_sell
-                }
-            )
+                })
             
             if r.ticker == 'UST10Y':
                 tens_close = r.close
@@ -205,7 +185,6 @@ def summonHedgeyeData(date=None, ticker=None, all_dates=False):
                 
         # Calculating the 10s/2s spread on the spot instead of storing them in the database
         data.append({'10s/2s Spread (bps)': round((tens_close - twos_close) * 100, 2)})      
-    
     else:
         data.append(
             {'Date': results.date,
@@ -230,14 +209,14 @@ def summonHedgeyeData(date=None, ticker=None, all_dates=False):
 
 def summonNasdaqData(date=None, all_dates=False):
     """
-    Retrieves data from database in accordance with the request.\n
-    If date, returns data associated with that specified date.\n
-    If not date, grabs the most recent data.\n
+    Gets desired data from database and formats it for GUI use.
+    Reference the NASDAQ class in dbReadWrite.py for how getData is used.\n
     Args:\n
-        date (string, optional): 'yyyy-mm-dd'. Defaults to None.\n
+        date (str, optional): 'yyyy-mm-dd'. Defaults to None.\n
+        all_dates (bool, optional): If true, will get all unique dates in database. Defaults to False.\n
     Returns:\n
-        dict: Data.\n
-    """  
+        dict: Data.
+    """
     if all_dates:
         return NASDAQ.getAllDates()
 
@@ -274,14 +253,14 @@ def summonNasdaqData(date=None, all_dates=False):
 
 def summonNyseData(date=None, all_dates=False):
     """
-    Retrieves data from database in accordance with the request.\n
-    If date, returns data associated with that specified date.\n
-    If not date, grabs the most recent data.\n
+    Gets desired data from database and formats it for GUI use.
+    Reference the NYSE class in dbReadWrite.py for how getData is used.\n
     Args:\n
-        date (string, optional): 'yyyy-mm-dd'. Defaults to None.\n
+        date (str, optional): 'yyyy-mm-dd'. Defaults to None.\n
+        all_dates (bool, optional): If true, will get all unique dates in database. Defaults to False.\n
     Returns:\n
-        dict: Data.\n
-    """        
+        dict: Data.
+    """
     if all_dates:
         return NYSE.getAllDates()
         
@@ -317,8 +296,9 @@ def summonNyseData(date=None, all_dates=False):
     
     
 def getCredentials():
-    """Gets and returns current username and password from config.json.\n"""
-    
+    """
+    Gets and returns current username and password from config.json.
+    """
     with open('DataCollection/config.json', 'r') as f:
         login_payload = json.load(f)
         return [login_payload['Payload'][0]['username'], login_payload['Payload'][0]['password']]
@@ -328,10 +308,9 @@ def setCredentials(username=None, password=None):
     """
     Given a username and/or password, will change the credentials inside of config.json.\n
     Args:\n
-        username (string, optional):  Defaults to None.\n
-        password (string, optional):  Defaults to None.\n
+        username (str, optional):  Defaults to None.\n
+        password (str, optional):  Defaults to None.
     """
-    
     # Get
     with open('DataCollection/config.json', 'r') as f:
         login_payload = json.load(f)
