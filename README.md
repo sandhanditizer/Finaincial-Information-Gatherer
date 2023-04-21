@@ -1,5 +1,8 @@
 # Financial-Information-Gatherer (FIG)
 
+## What it do baby:
+This application was a project that I created for my father. Every morning he would spend about an hour collecting data from three different websites, putting them in their respective Excel files, and run some analysis. This is obviously a waste of time since this can be automated. So, this app does everything described above and displays all the information in either graphs, tables, or a combination of both.
+
 ## Downloads needed:
 ```bash
 pip3 install sqlalchemy  
