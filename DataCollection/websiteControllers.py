@@ -15,10 +15,6 @@ class HedgeyeWebController:
         
         self._logged_in_driver = self._login()
         
-        if type(self._logged_in_driver) == str:
-            self._driver.quit()
-            raise RuntimeError(self._logged_in_driver + '\n')
-        
     
     def _createWaitDriver(self, driver):
         """Creates a driver that waits a maximum of 10 seconds for the website to load correctly.\n"""
@@ -32,7 +28,6 @@ class HedgeyeWebController:
             selenium.webdriver: If success.\n
             string: If failure.\n
         """
-        
         try:
             LOGIN_URL = 'https://accounts.hedgeye.com/users/sign_in'
             self._driver.get(LOGIN_URL)
@@ -52,7 +47,7 @@ class HedgeyeWebController:
             
             return self._driver
         except:
-            return "Cannot log into Hedgeye's website."
+            return "Cannot log into Hedgeye's website. Contact your son for support."
         
 
     def scrapeData(self):
@@ -61,6 +56,9 @@ class HedgeyeWebController:
         Returns:\n
             list: Data.\n
         """
+        if type(self._logged_in_driver) == str:
+            self._driver.quit()
+            return self._logged_in_driver
 
         try:
             RISK_RANGE_SIGNALS_URL = 'https://app.hedgeye.com/feed_items/all?page=1&with_category=33-risk-range-signals'
@@ -75,19 +73,19 @@ class HedgeyeWebController:
             rrs_table = wait_driver.until(EC.visibility_of_element_located((By.XPATH, '//*[@id="mid-col"]/div/div[1]/div/article/div/div[2]/table'))).get_attribute('textContent')
             date = wait_driver.until(EC.visibility_of_element_located((By.XPATH, '//*[starts-with(@id, "teaser_feed_item_")]/div[1]/time/span[2]'))).get_attribute('textContent')
         except:
-            return "Cannot grab risk range data from Hedgeye's website."
+            return "Cannot grab risk range data from Hedgeye's website. Website page has changed to something unrecognizable."
         finally:
             self._logged_in_driver.quit()
             
         try:
             data = extract(rrs_table) # Formats data returns a list of dictionaries
         except:
-            return "Cannot properly extract Hedgeye's table data."
+            return "Cannot properly extract Hedgeye's table data. Contact your son for support."
         
         try:
             formated_date = formatDate(date)
         except:
-            return "Cannot properly format Hedgeye's date data."
+            return "Cannot properly format Hedgeye's date data. Contact your son for support."
             
         data.append(formated_date)
         return data
@@ -135,7 +133,7 @@ class CompositesWebController:
             self._data['NASDAQ New Highs'] = wait_driver.until(EC.visibility_of_element_located((By.XPATH, '//*[@id="root"]/div/div/div/div[2]/div/div/div[2]/table/tbody[2]/tr[5]/td[2]'))).get_attribute('textContent')
             self._data['NASDAQ New Lows'] = wait_driver.until(EC.visibility_of_element_located((By.XPATH, '//*[@id="root"]/div/div/div/div[2]/div/div/div[2]/table/tbody[2]/tr[6]/td[2]'))).get_attribute('textContent')
         except:
-            return 'Cannot scrape NASDAQ or NYSE composite data from WSJ Market Diary page.'
+            return 'Cannot scrape NASDAQ or NYSE composite data from WSJ Market Diary page. Website page has changed to something unrecognizable.'
             
             
     def _getCloseData(self): 
@@ -187,7 +185,7 @@ class CompositesWebController:
             self._data['NASDAQ Close'] = round(((float(new_close.replace(',', '')) - float(old_close.replace(',', ''))) / float(old_close.replace(',', ''))) * 100, 2)
             
         except:
-            return 'Cannot scrape NASDAQ or NYSE composite close data from Yahoo Finance Quote pages.'
+            return 'Cannot scrape NASDAQ or NYSE composite close data from Yahoo Finance Quote pages. Website page has changed to something unrecognizable.'
             
             
     def scrapeData(self):
@@ -203,6 +201,6 @@ class CompositesWebController:
         try:
             formated_data = clean(self._data) # Formats data how I want it
         except:
-            return 'Cannot properly clean Market Diary and Yahoo data.'
+            return 'Cannot properly clean Market Diary and Yahoo data. Contact your son for support.'
             
         return formated_data

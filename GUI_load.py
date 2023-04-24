@@ -13,9 +13,18 @@ class LoadingPage(CTkFrame):
         dark_image = Image.open('LoadingImages/darkbackground.png')
         CTk_image = CTkImage(light_image=light_image, dark_image=dark_image, size=(1390, 930))
         bg_label = CTkLabel(self, image=CTk_image, text='')
-        bg_label.grid(row=0, column=0, sticky="nsew")      
+        bg_label.grid(row=0, column=0, sticky='nsew')      
     
         # Progress bar
         self.progress_bar = CTkProgressBar(self, mode='indeterminate')
         self.progress_bar.grid(row=0, column=0)
         self.progress_bar.start()
+        
+        self.after(200, func=lambda: self.welcome('Hello Father'))
+        self.after(3000, func=lambda: self.welcome('One moment while I work some magic...'))
+        self.after(13000, func=lambda: self.welcome('                                                           '))
+        
+        
+    def welcome(self, message):
+        welcome_label = CTkLabel(self, fg_color=('#aad1da', '#568699'), text_color='white', font=('Comic Sans MS', 20, 'bold'), text=message)
+        welcome_label.grid(row=0, column=0, pady=(400, 0))

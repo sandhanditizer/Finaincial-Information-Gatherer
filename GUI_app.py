@@ -1,3 +1,5 @@
+#!/Library/Frameworks/Python.framework/Versions/3.10/bin/python3
+
 from GUI_hedgeye import HedgeyePage
 from GUI_nasdaq import NASDAQPage
 from GUI_nyse import NYSEPage
@@ -77,7 +79,7 @@ class MainApp(CTk):
         try:
             result = updateDatabase()
         except:
-            popup.showError('A backend error occured. Call your son for support.')
+            popup.showError('A backend error occured. Contact your son for support.')
             self.loading_page.destroy()
             self.showPage(page)
             return

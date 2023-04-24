@@ -14,6 +14,17 @@ pip3 install matplotlib
 pip3 install tzlocal
 ```
 
+## Things to note:
+At the top of `GUI_app.py`, there is a shebang to indicate which interpreter should be used when executing a script I have for my computer. Since your interpreter will be in a different location I suggest you change it to where `python3` is on your computer. You can still launch the app with the instructions I give below and this comment will not effect it. However, if you would like to create an automator file on Mac or executable script on Windows, then you need to change the interpreter location.
+### Finding the correct path on Mac:
+```bash
+which python3
+```
+### Finding the correct path on Windows:
+```PowerShell
+where python
+```
+
 ## Choosing which browser to silently complete web scraping:
 In `DataCollection/scrapeHedgeye.py` and `DataCollection/scrapeWSJ_Yahoo.py` the function `getDriver` defaults to a 'Firefox' driver, but if it fails then it will try an 'Edge' driver. If you do not have Firefox or Edge installed, then please install one or the other. If there is a problem you will get the appropriate error message in your terminal. Once Firefox or Edge is installed, there is no further action needed.
 

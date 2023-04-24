@@ -82,7 +82,7 @@ class ThreadUpdate(Thread):
         return self._result
         
         
-def WiFiConnection():
+def connectedToWiFi():
     """
     Checks WiFi connection.\n
     Returns:\n
@@ -106,33 +106,34 @@ def updateDatabase():
     yesterdays_date = datetime.strftime(current_time.date() - timedelta(days=1), '%Y-%m-%d')
     j1, j2 = False, False
     
-    if WiFiConnection():
-        if todays_date != Hedgeye.getAllDates()[-1]:
-            thread1 = ThreadUpdate(target=updateHedgeyeTable)
-            thread1.start()
-            j1 = True
-
-        if NASDAQ.getData(date=yesterdays_date) == None or (current_time.hour > 16 and NASDAQ.getData(date=todays_date) == None):
-            thread2 = ThreadUpdate(target=updateNasdaqNyseTables)
-            thread2.start()
-            j2 = True
-
-        if j1 and j2:
-            thread1.join()
-            thread2.join()
-            return [thread1.result(), thread2.result()]
-        elif j1 and not j2:
-            thread1.join()
-            return [thread1.result(), 0]   
-        elif not j1 and j2:
-            thread2.join()
-            return [0, thread2.result()]   
-        else:
-            return [0, 0]
-        
-    else:
+    if not connectedToWiFi():
         return 'WiFi is down. Please check your connection.'
+    
+    if current_time.weekday() in [5, 6]: # Do not scrape data on weekends
+        return [0, 0]
+        
+    if todays_date != Hedgeye.getAllDates()[-1]:
+        thread1 = ThreadUpdate(target=updateHedgeyeTable)
+        thread1.start()
+        j1 = True
 
+    if NASDAQ.getData(date=yesterdays_date) == None or (current_time.hour > 16 and NASDAQ.getData(date=todays_date) == None):
+        thread2 = ThreadUpdate(target=updateNasdaqNyseTables)
+        thread2.start()
+        j2 = True
+
+    if j1 and j2:
+        thread1.join()
+        thread2.join()
+        return [thread1.result(), thread2.result()]
+    elif j1 and not j2:
+        thread1.join()
+        return [thread1.result(), 0]   
+    elif not j1 and j2:
+        thread2.join()
+        return [0, thread2.result()]   
+    else:
+        return [0, 0]
 
 # ------------------------------------------------------------------------------
 # Functions called while interacting with the pages
