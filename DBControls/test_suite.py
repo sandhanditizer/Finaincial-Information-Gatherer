@@ -1,3 +1,9 @@
+"""
+To properly run the test suite, you need to remove the prepended folder location, 'DBControls' 
+from the imports in files being tested. You also need to remove 'DBControls/' on line 7
+in 'dbReadWrite.py'.
+"""
+
 import unittest
 from test_dbRead import TestHedgeyeRead, TestNYSERead, TestNASDAQRead
 from test_dbWrite import TestHedgeyeWrite, TestNYSEWrite, TestNASDAQWrite

@@ -204,11 +204,11 @@ class HedgeyePage(CTkFrame):
         # Changing the style based on color mode
         style = ttk.Style()
         if self._get_appearance_mode() == 'dark':
-            background_color = '#103248'
+            background_color = '#0e161a'
             row_color = '#373737'
             row_color2 = '#4B4B4B'
             text_color = 'white'
-            highlight_color = '#476D7C'
+            highlight_color = '#304a54'
             style.configure('my.Treeview', rowheight=53, font=(None, 20), borderwidth=1, fieldbackground=background_color)
         else:
             background_color = '#E5E5E5'
@@ -267,7 +267,7 @@ class HedgeyePage(CTkFrame):
         
         # Setting color scheme based on color mode of computer
         if self._get_appearance_mode() == 'dark':
-            face_color = '#103248'
+            face_color = '#0e161a'
             label_color = 'white'
             close_line_color = '#C1C1C1'
             grid_color = '#8F8F8F'
