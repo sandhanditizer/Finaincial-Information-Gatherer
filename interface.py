@@ -20,8 +20,7 @@ def updateHedgeyeTable():
         str: Error.\n
         0: If success
     """
-    wc = HedgeyeWebController()
-    data = wc.scrapeData()
+    data = HedgeyeWebController().scrapeData()
     
     if type(data) == str:
         return data # Error
@@ -44,8 +43,7 @@ def updateNasdaqNyseTables():
         str: Error.\n
         0: If success
     """
-    wc = CompositesWebController()
-    data = wc.scrapeData()
+    data = CompositesWebController().scrapeData()
     
     if type(data) == str:
         return data # Error

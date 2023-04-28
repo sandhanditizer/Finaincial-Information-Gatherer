@@ -30,35 +30,40 @@ def formatDate(date):
     if dt is None:
         raise ValueError(f"Invalid date format: {date}.\n")
 
-    # Return formatted date string in yyyy-mm-dd format
     return dt.strftime("%Y-%m-%d")
 
 
-
-def getDriver(browser):
+def getDriver():
     """
-    Creates a selenium driver based on what browser you have.\n
-    Args:\n
-        browser (str): Firefox, or Edge.\n
+    Creates a selenium driver based on what browser you have. Availible drivers are Edge, Firefox, and Chrome.\n
     Returns:\n
-        webdriver
+        Webdriver
     """
-    if browser == 'Edge':
+    try:
         options = webdriver.EdgeOptions()
         options.add_argument('-headless') # Prevents browser pop-up
         return webdriver.Edge(options=options)
-    elif browser == 'Firefox':
+    except:
+        pass
+    
+    try:
         options = webdriver.FirefoxOptions()
         options.add_argument('-headless') # Prevents browser pop-up
         return webdriver.Firefox(options=options)
-    else:
-        raise ValueError('Available webdriver browsers are `Edge` and `Firefox`.\n')
-
+    except:
+        pass
+    
+    try:
+        options = webdriver.ChromeOptions()
+        options.add_argument('-headless') # Prevents browser pop-up
+        return webdriver.Chrome(options=options)
+    except:
+        # If user doesnt have either three, throw error
+        raise ValueError('Available webdriver browsers are Edge, Firefox, and Chrome.')
 
 
 def removeParentheses(string):
     return re.sub(r'\([^)]*\)', '', string).strip()
-
 
 
 def extract(data):
@@ -82,7 +87,6 @@ def extract(data):
                            "Close": float(pieces[6].replace(',', ''))})
     
     return result
-
 
 
 def clean(data):

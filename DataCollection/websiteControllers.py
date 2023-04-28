@@ -8,16 +8,12 @@ import json
 
 class HedgeyeWebController:
     def __init__(self):
-        try:
-            self._driver = getDriver('Firefox')
-        except:
-            self._driver = getDriver('Edge')
-        
+        self._driver = getDriver()
         self._logged_in_driver = self._login()
         
     
     def _createWaitDriver(self, driver):
-        """Creates a driver that waits a maximum of 10 seconds for the website to load correctly.\n"""
+        """Creates a driver that waits a maximum of 10 seconds for the website to load correctly."""
         return WebDriverWait(driver, 10) 
         
         
@@ -26,7 +22,7 @@ class HedgeyeWebController:
         Attemps to logs into the Hedgeye website.\n
         Returns:\n
             selenium.webdriver: If success.\n
-            string: If failure.\n
+            string: If failure.
         """
         try:
             LOGIN_URL = 'https://accounts.hedgeye.com/users/sign_in'
@@ -54,7 +50,7 @@ class HedgeyeWebController:
         """
         Requests newest data from Hedgeye website and returns the data clean and formated.\n
         Returns:\n
-            list: Data.\n
+            list: Data.
         """
         if type(self._logged_in_driver) == str:
             self._driver.quit()
@@ -96,11 +92,7 @@ class HedgeyeWebController:
 
 class CompositesWebController:
     def __init__(self):
-        try:
-            self._driver = getDriver('Firefox')
-        except:
-            self._driver = getDriver('Edge') 
-    
+        self._driver = getDriver()
         self._data = {}
     
     
