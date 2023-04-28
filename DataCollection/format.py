@@ -35,17 +35,10 @@ def formatDate(date):
 
 def getDriver():
     """
-    Creates a selenium driver based on what browser you have. Availible drivers are Edge, Firefox, and Chrome.\n
+    Creates a selenium driver based on what browser you have. Availible drivers are Firefox and Chrome.\n
     Returns:\n
         Webdriver
     """
-    try:
-        options = webdriver.EdgeOptions()
-        options.add_argument('-headless') # Prevents browser pop-up
-        return webdriver.Edge(options=options)
-    except:
-        pass
-    
     try:
         options = webdriver.FirefoxOptions()
         options.add_argument('-headless') # Prevents browser pop-up
@@ -59,7 +52,7 @@ def getDriver():
         return webdriver.Chrome(options=options)
     except:
         # If user doesnt have either three, throw error
-        raise ValueError('Available webdriver browsers are Edge, Firefox, and Chrome.')
+        raise ValueError('Available webdriver browsers are Firefox and Chrome.')
 
 
 def removeParentheses(string):

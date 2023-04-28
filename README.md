@@ -15,7 +15,7 @@ pip3 install matplotlib		# Plotting
 pip3 install tzlocal		# Time functions 
 ```
 
-## Things to note:
+## Things to note - 1:
 At the top of `GUI_app.py`, there is a shebang to indicate which interpreter should be used when executing a script I have for my computer. Since your interpreter will be in a different location I suggest that you change it to where `python3` is on your computer. You can still launch the app with the instructions I give below and this comment will not effect it. However, if you would like to create an automator file on Mac or executable script on Windows, then you need to change the interpreter location.
 ### Finding the correct path on Mac:
 ```bash
@@ -25,6 +25,9 @@ which python3
 ```PowerShell
 where python
 ```
+
+## Things to note - 2:
+If you get a popup that says "Cannot grab risk range data from Hedgeye's website. Website page has changed to something unrecognizable." Then that means hedgeye has temporarily changed the page that the app gets data from. Don't freak out. If you run it in the morning the data scrape should be a success.
 
 ## Having the right browser:
 In `DataCollection/scrapeHedgeye.py` and `DataCollection/scrapeWSJ_Yahoo.py` the function `getDriver` will try to get drivers for Edge, Firefox, or Chrome using selenium. If you do not have Edge, Firefox, or Chrome installed, then please install one. Once a browser is installed, there is no further action needed.
