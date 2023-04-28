@@ -62,21 +62,29 @@ class NYSEPage(CTkFrame):
     def checkAlerts(self, silent):
         message = ''
         
-        if self.data['10-Day Breakaway Momentum'] > 1.97:
-            message += '10-Day Breakway Momentum passed above set threshold of 1.97\n\n'
+        if self.data['10-Day Breakaway Momentum']:
+            if self.data['10-Day Breakaway Momentum'] > 1.97:
+                message += '10-Day Breakway Momentum passed above set threshold of 1.97\n\n'
+        
+        if self.data['20-Day Breakaway Momentum']:
+            if self.data['20-Day Breakaway Momentum'] > 1.72:
+                message += '20-Day Breakway Momentum passed above set threshold of 1.72\n\n'
             
-        if self.data['20-Day Breakaway Momentum'] > 1.72:
-            message += '20-Day Breakway Momentum passed above set threshold of 1.72\n\n'
+        if self.data['5-Day Advance/Decline Thrust (%)']:
+            if self.data['5-Day Advance/Decline Thrust (%)'] < 19.05:
+                message += '5-Day Advance/Decline Thrust passed below set threshold of 19.05%\n\n'
+                
+        if self.data['5-Day Advance/Decline Thrust (%)']:
+            if self.data['5-Day Advance/Decline Thrust (%)'] > 73.66:
+                message += '5-Day Advance/Decline Thrust passed above set threshold of 73.66%\n\n'
             
-        if self.data['5-Day Advance/Decline Thrust (%)'] < 19.05:
-            message += '5-Day Advance/Decline Thrust passed below set threshold of 19.05%\n\n'
-        if self.data['5-Day Advance/Decline Thrust (%)'] > 73.66:
-            message += '5-Day Advance/Decline Thrust passed above set threshold of 73.66%\n\n'
-            
-        if self.data['5-Day Up/Down Volume Thrust (%)'] < 16.41:
-            message += '5-Day Up/Down Volume Thrust passed below set threshold of 16.41%\n\n'
-        if self.data['5-Day Up/Down Volume Thrust (%)'] > 77.88:
-            message += '5-Day Up/Down Volume Thrust passed above set threshold of 77.88%\n\n'
+        if self.data['5-Day Up/Down Volume Thrust (%)']:
+            if self.data['5-Day Up/Down Volume Thrust (%)'] < 16.41:
+                message += '5-Day Up/Down Volume Thrust passed below set threshold of 16.41%\n\n'
+                
+        if self.data['5-Day Up/Down Volume Thrust (%)']:
+            if self.data['5-Day Up/Down Volume Thrust (%)'] > 77.88:
+                message += '5-Day Up/Down Volume Thrust passed above set threshold of 77.88%\n\n'
             
         if message != '':
             self.button4 = CTkButton(self, text='Alerts', command=lambda: self.checkAlerts(silent=False), 
@@ -134,7 +142,7 @@ class NYSEPage(CTkFrame):
 
         style = ttk.Style()
         if self._get_appearance_mode() == 'dark':
-            background_color = '#1D3E53'
+            background_color = '#0e161a'
             row_color = '#373737'
             row_color2 = '#4B4B4B'
             text_color = 'white'
