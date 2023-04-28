@@ -200,14 +200,14 @@ class NASDAQPage(CTkFrame):
             row_color2 = '#4B4B4B'
             text_color = 'white'
             highlight_color = '#476D7C'
-            style.configure('my.Treeview', rowheight=60, font=(None, 15), borderwidth=1, fieldbackground=background_color)
+            style.configure('my.Treeview', rowheight=60, font=(None, 15), fieldbackground=background_color)
         else:
             background_color = '#E5E5E5'
             row_color = '#F7F7F7'
             row_color2 = '#D3D3D3'
             text_color = 'black'
             highlight_color = '#476D7C'
-            style.configure('my.Treeview', rowheight=60, font=(None, 15), borderwidth=1, fieldbackground=background_color)
+            style.configure('my.Treeview', rowheight=60, font=(None, 15), fieldbackground=background_color)
         
         style.map('my.Treeview', background=[('selected', highlight_color)], foreground=[('selected', 'white')])
         

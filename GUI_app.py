@@ -77,7 +77,7 @@ class MainApp(CTk):
         popup = Popup(self)
         
         try:
-            result = ''#updateDatabase()
+            result = updateDatabase()
         except:
             popup.showError('A backend error occured. Contact your son for support.')
             self.loading_page.destroy()

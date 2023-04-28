@@ -209,14 +209,14 @@ class HedgeyePage(CTkFrame):
             row_color2 = '#4B4B4B'
             text_color = 'white'
             highlight_color = '#304a54'
-            style.configure('my.Treeview', rowheight=53, font=(None, 15), borderwidth=1, fieldbackground=background_color)
+            style.configure('my.Treeview', rowheight=53, font=(None, 15), fieldbackground=background_color)
         else:
             background_color = '#E5E5E5'
             row_color = '#F7F7F7'
             row_color2 = '#D3D3D3'
             text_color = 'black'
             highlight_color = '#476D7C'
-            style.configure('my.Treeview', rowheight=53, font=(None, 15), borderwidth=1, fieldbackground=background_color)
+            style.configure('my.Treeview', rowheight=53, font=(None, 15), fieldbackground=background_color)
             
         # Color change when clicking on the table
         style.map('my.Treeview', background=[('selected', highlight_color)], foreground=[('selected', 'white')])
@@ -263,7 +263,7 @@ class HedgeyePage(CTkFrame):
         # Graph label
         self.graph_lable = CTkEntry(self, font=('', 20), justify='right', height=50)
         self.graph_lable.grid(row=(initrow - 1), column=initcol, columnspan=6, sticky='ew', padx=10)
-        self.graph_lable.insert(END, 'Trade Price                  ')    
+        self.graph_lable.insert(END, 'Trade Price View                  ')    
         
         # Setting color scheme based on color mode of computer
         if self._get_appearance_mode() == 'dark':
