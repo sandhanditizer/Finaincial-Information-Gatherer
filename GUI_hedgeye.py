@@ -16,7 +16,7 @@ class HedgeyePage(CTkFrame):
         # Class globals
         self.data = None
         self.tickers = []
-        self.progress_bar = CTkProgressBar(self, mode='indeterminate', width=200)
+        self.progress_bar = CTkProgressBar(self, mode='indeterminate', indeterminate_speed=0.5)
         
         # For the date selector
         self.dates = summonHedgeyeData(all_dates=True)
@@ -64,7 +64,7 @@ class HedgeyePage(CTkFrame):
         thread = Thread(target=self.master.initiateWebScrape, args=('Hedgeye',))
         thread.start()
         
-        self.progress_bar.grid(row=0, column=1, columnspan=2)
+        self.progress_bar.grid(row=2, column=0, columnspan=8, padx=10, sticky='ew')
         self.progress_bar.start()
 
 
@@ -193,7 +193,7 @@ class HedgeyePage(CTkFrame):
         initcol = 6
         
         # Table label   
-        self.table_lable = CTkEntry(self, font=('', 20), justify='center', height=40)
+        self.table_lable = CTkEntry(self, font=('', 20), justify='center', height=50)
         self.table_lable.grid(row=(initrow - 1), column=initcol, columnspan=3, sticky='ew', pady=10)
         self.table_lable.insert(END, 'Range and Performance Data') 
           
@@ -209,14 +209,14 @@ class HedgeyePage(CTkFrame):
             row_color2 = '#4B4B4B'
             text_color = 'white'
             highlight_color = '#304a54'
-            style.configure('my.Treeview', rowheight=53, font=(None, 20), borderwidth=1, fieldbackground=background_color)
+            style.configure('my.Treeview', rowheight=53, font=(None, 15), borderwidth=1, fieldbackground=background_color)
         else:
             background_color = '#E5E5E5'
             row_color = '#F7F7F7'
             row_color2 = '#D3D3D3'
             text_color = 'black'
             highlight_color = '#476D7C'
-            style.configure('my.Treeview', rowheight=53, font=(None, 20), borderwidth=1, fieldbackground=background_color)
+            style.configure('my.Treeview', rowheight=53, font=(None, 15), borderwidth=1, fieldbackground=background_color)
             
         # Color change when clicking on the table
         style.map('my.Treeview', background=[('selected', highlight_color)], foreground=[('selected', 'white')])
@@ -227,7 +227,7 @@ class HedgeyePage(CTkFrame):
         self.top_row.insert('', 'end', text='10s/2s Spread (bps)', values=(self.data[-1]['10s/2s Spread (bps)']), tags='tt')
         self.top_row.tag_configure('tt', background=background_color, foreground=text_color)
         self.top_row.column('col1', anchor='e')
-        self.top_row.grid(row=initrow, column=initcol, columnspan=3, sticky='nsew', pady=7)
+        self.top_row.grid(row=initrow, column=initcol, columnspan=3, sticky='nsew', pady=(0, 5))
         
         # Table tree
         self.table = ttk.Treeview(self, columns=('col1',), style='my.Treeview', show='tree')
@@ -245,7 +245,7 @@ class HedgeyePage(CTkFrame):
         self.table.tag_configure('odd', background=row_color2, foreground=text_color)
         self.table.column('col1', anchor='e')
 
-        self.table.grid(row=initrow, column=initcol, columnspan=3, rowspan=9, sticky='nsew', pady=73)
+        self.table.grid(row=initrow, column=initcol, columnspan=3, rowspan=9, sticky='nsew', pady=62)
 
 
     def drawGraph(self, ticker):
@@ -261,7 +261,7 @@ class HedgeyePage(CTkFrame):
         plt.rcParams['font.size'] = 12
         
         # Graph label
-        self.graph_lable = CTkEntry(self, font=('', 20), justify='right', height=40)
+        self.graph_lable = CTkEntry(self, font=('', 20), justify='right', height=50)
         self.graph_lable.grid(row=(initrow - 1), column=initcol, columnspan=6, sticky='ew', padx=10)
         self.graph_lable.insert(END, 'Trade Price                  ')    
         

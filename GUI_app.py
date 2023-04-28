@@ -60,10 +60,10 @@ class MainApp(CTk):
         for page in self.pages.values():
             page[0].grid_forget()
         
+        self.pages[requested_page][0].progress_bar.grid_forget() # Stashes the loading bar for then `reload` is pressed
         self.title(requested_page) # Change the page header
         saved_info_params = self.pages[requested_page][1:] # Parameters for reloadPage
         self.pages[requested_page][0].reloadPage(*saved_info_params) # Reload page with new data but keeps a record of what page you were on
-        self.pages[requested_page][0].progress_bar.grid_forget() # Stashes the loading bar for then `reload` is pressed
         self.pages[requested_page][0].grid(row=0, column=0, sticky='nsew')
 
 
@@ -77,7 +77,7 @@ class MainApp(CTk):
         popup = Popup(self)
         
         try:
-            result = updateDatabase()
+            result = ''#updateDatabase()
         except:
             popup.showError('A backend error occured. Contact your son for support.')
             self.loading_page.destroy()

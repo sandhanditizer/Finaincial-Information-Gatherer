@@ -16,7 +16,7 @@ class LoadingPage(CTkFrame):
         bg_label.grid(row=0, column=0, sticky='nsew')
     
         # Progress bar
-        self.progress_bar = CTkProgressBar(self, mode='indeterminate')
+        self.progress_bar = CTkProgressBar(self, mode='indeterminate', indeterminate_speed=0.7, width=250)
         self.progress_bar.grid(row=0, column=0)
         self.progress_bar.start()
         
