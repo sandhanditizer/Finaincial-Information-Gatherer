@@ -1,12 +1,5 @@
 from format import *
 import unittest
-
-
-class TestGetDriver(unittest.TestCase):
-    def test_unavailable_browser(self):
-        """Only Edge and Firefox are available for scrapping"""
-        with self.assertRaises(ValueError):
-            getDriver('Safari')
     
 
 class TestParenthesesRemover(unittest.TestCase):

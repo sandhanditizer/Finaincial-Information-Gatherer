@@ -1,5 +1,4 @@
 from datetime import datetime
-from selenium import webdriver
 import re
 
 
@@ -31,28 +30,6 @@ def formatDate(date):
         raise ValueError(f"Invalid date format: {date}.\n")
 
     return dt.strftime("%Y-%m-%d")
-
-
-def getDriver():
-    """
-    Creates a selenium driver based on what browser you have. Availible drivers are Firefox and Chrome.\n
-    Returns:\n
-        Webdriver
-    """
-    try:
-        options = webdriver.FirefoxOptions()
-        options.add_argument('-headless') # Prevents browser pop-up
-        return webdriver.Firefox(options=options)
-    except:
-        pass
-    
-    try:
-        options = webdriver.ChromeOptions()
-        options.add_argument('-headless') # Prevents browser pop-up
-        return webdriver.Chrome(options=options)
-    except:
-        # If user doesnt have either three, throw error
-        raise ValueError('Available webdriver browsers are Firefox and Chrome.')
 
 
 def removeParentheses(string):

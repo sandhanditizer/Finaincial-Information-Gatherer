@@ -9,7 +9,7 @@ db_filename = 'DBControls/market_data.db'
 
 def createSession():
     """Every interaction with the database will be done through a Session object. 
-    So this function will be called to begin a new interaction.\n
+    So this function will be called to begin a new interaction.
     """
     try:
         # Open a editor session with the database
