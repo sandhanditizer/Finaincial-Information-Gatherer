@@ -27,32 +27,24 @@ class HedgeyePage(ctk.CTkFrame):
         page_title.grid(row=0, column=0, columnspan=2, padx=10, pady=20,  sticky='w')
         
         # Reload data button
-        button1 = ctk.CTkButton(self, text='Reload', command=self.reloadThread)
+        button1 = ctk.CTkButton(self, text='Reload Data', command=self.reloadThread)
         button1.grid(row=1, column=0, padx=10, pady=10, sticky='ew')
         
         # Redirection buttons
-        button2 = ctk.CTkButton(self, text='NASDAQ', command=lambda: self.master.showPage('NASDAQ'))
+        button2 = ctk.CTkButton(self, text='Goto NASDAQ', command=lambda: self.master.showPage('NASDAQ'))
         button2.grid(row=1, column=1, padx=10, pady=10, sticky='ew')
         
-        button3 = ctk.CTkButton(self, text='NYSE', command=lambda: self.master.showPage('NYSE'))
+        button3 = ctk.CTkButton(self, text='Goto NYSE', command=lambda: self.master.showPage('NYSE'))
         button3.grid(row=1, column=2, padx=10, pady=10, sticky='ew')
         
         # Open settings
-        button4 = ctk.CTkButton(self, text='Settings', command=self.openSettings)
-        button4.grid(row=0, column=8, padx=10, pady=10, sticky='ew')
-        
-        # Date
-        date_lable = ctk.CTkLabel(self, text='Date:')
-        date_lable.grid(row=1, column=3, padx=10, pady=10, sticky='e')
-        
-        # Ticker
-        ticker_lable = ctk.CTkLabel(self, text='Ticker:')
-        ticker_lable.grid(row=1, column=5, padx=10, pady=10, sticky='e')
+        button4 = ctk.CTkButton(self, text='Credential Settings', command=self.openSettings, width=160)
+        button4.grid(row=0, column=8, padx=10, pady=10, sticky='e')
         
         # Month separator       
         self.grid_split_seg_buttons = ctk.CTkSegmentedButton(self, values=['No Y-Grid', 'M', '3M', '6M', '1Y'], command=self.setGrid)
         self.grid_split_seg_buttons.set('No Y-Grid')
-        self.grid_split_seg_buttons.grid(row=0, column=6, columnspan=2, pady=10, sticky='ew')
+        self.grid_split_seg_buttons.grid(row=0, column=5, columnspan=4, padx=10, pady=10, sticky='w')
                 
             
 
@@ -146,20 +138,20 @@ class HedgeyePage(ctk.CTkFrame):
             ticker_choice (str, optional): Ticker that was clicked on by user. Defaults to None.
         """
         # Description to the right of ticker dropdown
-        description_lable = ctk.CTkLabel(self, text=description, anchor='e')
-        description_lable.grid(row=1, column=6, columnspan=3, padx=10, pady=10, sticky='ew')
+        description_lable = ctk.CTkLabel(self, text=description, anchor='center')
+        description_lable.grid(row=1, column=5, columnspan=4, padx=10, pady=10, sticky='ew')
         
         # Ticker dropdown box
-        ticker_drop_down = ctk.CTkOptionMenu(self, values=tickers, command=self.tickerAction, anchor='center', width=110)
+        ticker_drop_down = ctk.CTkOptionMenu(self, values=tickers, command=self.tickerAction, anchor='center')
         if ticker_choice:
             ticker_drop_down.set(ticker_choice)
-        ticker_drop_down.grid(row=1, column=6, pady=10, sticky='w')
+        ticker_drop_down.grid(row=1, column=4, padx=10, pady=10, sticky='ew')
         
         # Date dropdown box
         date_drop_down = ctk.CTkOptionMenu(self, values=self.dates, command=self.dateAction, anchor='center')
         if date_choice:
             date_drop_down.set(date_choice)
-        date_drop_down.grid(row=1, column=4, pady=10, sticky='w')   
+        date_drop_down.grid(row=1, column=3, padx=10, pady=10, sticky='ew')   
         
         
     def setGrid(self, _):

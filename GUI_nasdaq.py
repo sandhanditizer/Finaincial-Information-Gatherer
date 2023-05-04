@@ -22,19 +22,15 @@ class NASDAQPage(ctk.CTkFrame):
         page_title.grid(row=0, column=0, columnspan=3, padx=10, pady=20,  sticky='w')
         
         # Reload data button
-        button1 = ctk.CTkButton(self, text='Reload', command=self.reloadThread)
+        button1 = ctk.CTkButton(self, text='Reload Data', command=self.reloadThread)
         button1.grid(row=1, column=0, padx=10, pady=10, sticky='nsew')
         
         # Redirection buttons
-        button2 = ctk.CTkButton(self, text='NYSE', command=lambda: self.master.showPage('NYSE'))
+        button2 = ctk.CTkButton(self, text='Goto NYSE', command=lambda: self.master.showPage('NYSE'))
         button2.grid(row=1, column=1, padx=10, pady=10, sticky='nsew')
         
-        button3 = ctk.CTkButton(self, text='Hedgeye', command=lambda: self.master.showPage('Hedgeye'))
+        button3 = ctk.CTkButton(self, text='Goto Hedgeye', command=lambda: self.master.showPage('Hedgeye'))
         button3.grid(row=1, column=2, padx=10, pady=10, sticky='nsew')
-        
-        # Date
-        date_lable = ctk.CTkLabel(self, text='Date:')
-        date_lable.grid(row=1, column=3, padx=10, pady=10, sticky='e')
                 
         
 
@@ -47,7 +43,7 @@ class NASDAQPage(ctk.CTkFrame):
         thread = Thread(target=self.master.initiateWebScrape, args=('NASDAQ',))
         thread.start()
         
-        self.progress_bar.grid(row=2, column=0, columnspan=5, sticky='ew', padx=10)
+        self.progress_bar.grid(row=2, column=0, columnspan=4, sticky='ew', padx=10)
         self.progress_bar.start()
         
         
@@ -88,11 +84,11 @@ class NASDAQPage(ctk.CTkFrame):
             Popup(self).showInfo(message)
             
         if message != '':
-            button4 = ctk.CTkButton(self, text='Alerts', command=lambda: self.checkAlerts(show_alert=True), border_color='#D6544B', border_width=3)
+            button4 = ctk.CTkButton(self, text='New Alerts', command=lambda: self.checkAlerts(show_alert=True), border_color='#D6544B', border_width=3, width=90)
         else:
-            button4 = ctk.CTkButton(self, text='Alerts', state='disabled')
+            button4 = ctk.CTkButton(self, text='No Alerts', state='disabled', width=80)
             
-        button4.grid(row=0, column=4, padx=10, pady=10, sticky='e')
+        button4.grid(row=0, column=3, padx=10, pady=10, sticky='e')
         
         
     def reloadPage(self, target_date=None):
@@ -134,7 +130,7 @@ class NASDAQPage(ctk.CTkFrame):
         date_drop_down = ctk.CTkOptionMenu(self, values=self.dates, command=self.dateAction, anchor='center')
         if date_choice:
             date_drop_down.set(date_choice)
-        date_drop_down.grid(row=1, column=4, padx=10, pady=10, sticky='w')
+        date_drop_down.grid(row=1, column=3, padx=10, pady=10, sticky='w')
         
         
     def drawTable(self, data):
@@ -149,7 +145,7 @@ class NASDAQPage(ctk.CTkFrame):
         
         # Table label
         self.table_lable = ctk.CTkEntry(self, justify='center', height=40, font=(None, 20))
-        self.table_lable.grid(row=(initrow - 1), column=initcol, columnspan=6, padx=10, pady=10, sticky='ew')
+        self.table_lable.grid(row=(initrow - 1), column=initcol, columnspan=4, padx=10, pady=10, sticky='ew')
         self.table_lable.insert(ctk.END, 'Volumetric Data') 
           
         labels = ['Close (%)', 
@@ -198,4 +194,4 @@ class NASDAQPage(ctk.CTkFrame):
         self.table.tag_configure('odd', background=row_color2, foreground=text_color)
         self.table.column('col1', anchor='e')
 
-        self.table.grid(row=initrow, column=initcol, columnspan=6, rowspan=4, padx=10, sticky='nsew')
+        self.table.grid(row=initrow, column=initcol, columnspan=4, rowspan=4, padx=10, sticky='nsew')

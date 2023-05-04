@@ -60,7 +60,7 @@ class MainApp(ctk.CTk):
             self.geometry('1230x815')
             self.geometry(f'+220+140') # Widget shift to middle of screen
         else:
-            self.geometry('695x740') # Resizing to NASDAQ and NYSE pages
+            self.geometry('640x740') # Resizing to NASDAQ and NYSE pages
             self.geometry(f'+490+140')
         
         self.pages[requested_page][0].progress_bar.grid_forget() # Stashes the loading bar for then `reload` is pressed
