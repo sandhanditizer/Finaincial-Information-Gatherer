@@ -6,14 +6,14 @@ from GUI_nyse import NYSEPage
 from GUI_load import LoadingPage
 from GUI_popup import Popup
 from interface import updateDatabase
-from customtkinter import set_appearance_mode, set_default_color_theme, CTk
+import customtkinter as ctk
 from threading import Thread
 
 
-set_appearance_mode('system')
-set_default_color_theme('theme.json')
+ctk.set_appearance_mode('system')
+ctk.set_default_color_theme('theme.json')
 
-class MainApp(CTk):
+class MainApp(ctk.CTk):
     def __init__(self):
         super().__init__()
         
@@ -21,11 +21,7 @@ class MainApp(CTk):
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
         
-        # Initial screen size for the Hedgeye page
-        self.geometry('1280x845')
-        self.geometry(f'+220+140') # Widget shift to middle of screen
         self.title('FIG')
-
         self.loading_page = LoadingPage(self)
         self.loading_page.grid(row=0, column=0, sticky='nsew')
         
@@ -59,6 +55,13 @@ class MainApp(CTk):
         """
         for page in self.pages.values():
             page[0].grid_forget()
+            
+        if requested_page == 'Hedgeye':
+            self.geometry('1230x815')
+            self.geometry(f'+220+140') # Widget shift to middle of screen
+        else:
+            self.geometry('695x740') # Resizing to NASDAQ and NYSE pages
+            self.geometry(f'+490+140')
         
         self.pages[requested_page][0].progress_bar.grid_forget() # Stashes the loading bar for then `reload` is pressed
         self.title(requested_page) # Change the page header

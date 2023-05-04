@@ -1,6 +1,6 @@
 from GUI_settings import Settings
 from interface import summonHedgeyeData
-from customtkinter import CTkFrame, CTkLabel, CTkButton, CTkEntry, CTkComboBox, CTkProgressBar, END
+import customtkinter as ctk
 from tkinter import ttk
 from datetime import datetime
 from threading import Thread
@@ -9,49 +9,50 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 
 
-class HedgeyePage(CTkFrame):
+class HedgeyePage(ctk.CTkFrame):
     def __init__(self, parent):
         super().__init__(parent)
         
         # Class globals
         self.data = None
         self.tickers = []
-        self.progress_bar = CTkProgressBar(self, mode='indeterminate', indeterminate_speed=0.5)
+        self.progress_bar = ctk.CTkProgressBar(self, mode='indeterminate', indeterminate_speed=0.5)
         
         # For the date selector
         self.dates = summonHedgeyeData(all_dates=True)
-        self.dates.reverse() 
-        
-        # Manual configures to get spacing right
-        self.grid_rowconfigure(2, minsize=25)
-        self.grid_columnconfigure(7, minsize=350)
+        self.dates.reverse()
         
         # Page specifier
-        page_title = CTkLabel(self, text="Daily Data", font=('', 40, 'bold'))
-        page_title.grid(row=0, column=0, columnspan=2, sticky='w', pady=25, padx=10)
+        page_title = ctk.CTkLabel(self, text="Daily Data", font=(None, 40, 'bold'))
+        page_title.grid(row=0, column=0, columnspan=2, padx=10, pady=20,  sticky='w')
         
         # Reload data button
-        button1 = CTkButton(self, text='Reload', command=self.reloadThread, font=('', 16))
-        button1.grid(row=1, column=0, padx=10, pady=10, sticky='nsew')
+        button1 = ctk.CTkButton(self, text='Reload', command=self.reloadThread)
+        button1.grid(row=1, column=0, padx=10, pady=10, sticky='ew')
         
         # Redirection buttons
-        button2 = CTkButton(self, text='NASDAQ', command=self.gotoNASDAQ, font=('', 16))
-        button2.grid(row=1, column=2, padx=10, pady=10, sticky='nsew')
+        button2 = ctk.CTkButton(self, text='NASDAQ', command=lambda: self.master.showPage('NASDAQ'))
+        button2.grid(row=1, column=1, padx=10, pady=10, sticky='ew')
         
-        button3 = CTkButton(self, text='NYSE', command=self.gotoNYSE, font=('', 16))
-        button3.grid(row=1, column=1, padx=10, pady=10, sticky='nsew')
+        button3 = ctk.CTkButton(self, text='NYSE', command=lambda: self.master.showPage('NYSE'))
+        button3.grid(row=1, column=2, padx=10, pady=10, sticky='ew')
         
         # Open settings
-        button4 = CTkButton(self, text='Settings', command=self.openSettings, font=('', 16), width=100)
-        button4.grid(row=0, column=7, padx=10, pady=10, sticky='e')
+        button4 = ctk.CTkButton(self, text='Settings', command=self.openSettings)
+        button4.grid(row=0, column=8, padx=10, pady=10, sticky='ew')
         
         # Date
-        date_lable = CTkLabel(self, text='Date:', font=('', 17))
+        date_lable = ctk.CTkLabel(self, text='Date:')
         date_lable.grid(row=1, column=3, padx=10, pady=10, sticky='e')
         
         # Ticker
-        ticker_lable = CTkLabel(self, text='Ticker:', font=('', 17))
+        ticker_lable = ctk.CTkLabel(self, text='Ticker:')
         ticker_lable.grid(row=1, column=5, padx=10, pady=10, sticky='e')
+        
+        # Month separator       
+        self.grid_split_seg_buttons = ctk.CTkSegmentedButton(self, values=['No Y-Grid', 'M', '3M', '6M', '1Y'], command=self.setGrid)
+        self.grid_split_seg_buttons.set('No Y-Grid')
+        self.grid_split_seg_buttons.grid(row=0, column=6, columnspan=2, pady=10, sticky='ew')
                 
             
 
@@ -64,27 +65,8 @@ class HedgeyePage(CTkFrame):
         thread = Thread(target=self.master.initiateWebScrape, args=('Hedgeye',))
         thread.start()
         
-        self.progress_bar.grid(row=2, column=0, columnspan=8, padx=10, sticky='ew')
+        self.progress_bar.grid(row=2, column=0, columnspan=10, padx=10, sticky='ew')
         self.progress_bar.start()
-
-
-    def gotoNASDAQ(self):
-        """
-        Switches page to the NASDAQ Power Play Results page.
-        """
-        self.master.geometry('740x845')
-        self.master.geometry(f'+490+140') # Shift
-        self.master.showPage('NASDAQ')
-        
-
-    def gotoNYSE(self):
-        """
-        Switches page to the NYSE Power Play Results page.
-        """
-        
-        self.master.geometry('740x845')
-        self.master.geometry(f'+490+140') # Shift
-        self.master.showPage('NYSE')
         
     
     def openSettings(self):
@@ -114,13 +96,11 @@ class HedgeyePage(CTkFrame):
         self.drawGraph(data[0]['Ticker'])
         self.drawInteractiveWidgets(self.tickers, data[0]['Description'], target_date, data[0]['Ticker'])
         
-        # This saves where you are on the page
-        # This allows you to navigate to other pages or press `reload` without losing your spot
+        # This saves where you are on the page which allows you to navigate to other pages or press `reload` without losing your spot
         self.master.pages['Hedgeye'][1] = data[0]['Date']
         self.master.pages['Hedgeye'][2] = data[0]['Ticker']
         
 
-        
     def findDictByTick(self, list_of_dictionaries, ticker):
         """
         Finds the associated ticker data in the list of dictionaries given the ticker name.\n
@@ -165,21 +145,25 @@ class HedgeyePage(CTkFrame):
             date_choice (str, optional): Date that was clicked on by user. Defaults to None.\n
             ticker_choice (str, optional): Ticker that was clicked on by user. Defaults to None.
         """
-        # Date in entry box
-        self.date_drop_down = CTkComboBox(self, values=self.dates, command=self.dateAction, width=140, justify='center', font=('', 14))
-        if date_choice:
-            self.date_drop_down.set(date_choice)
-        self.date_drop_down.grid(row=1, column=4, pady=10, sticky='w')
-        
-        # Ticker in dropdown box
-        self.ticker_drop_down = CTkComboBox(self, values=tickers, command=self.tickerAction, width=100, justify='center', font=('', 14))
-        if ticker_choice:
-            self.ticker_drop_down.set(ticker_choice)
-        self.ticker_drop_down.grid(row=1, column=6, pady=10, sticky='w')
-        
         # Description to the right of ticker dropdown
-        self.description_lable = CTkLabel(self, text=description, font=('', 16))
-        self.description_lable.grid(row=1, column=7, columnspan=3, pady=10, sticky='ew')
+        description_lable = ctk.CTkLabel(self, text=description, anchor='e')
+        description_lable.grid(row=1, column=6, columnspan=3, padx=10, pady=10, sticky='ew')
+        
+        # Ticker dropdown box
+        ticker_drop_down = ctk.CTkOptionMenu(self, values=tickers, command=self.tickerAction, anchor='center', width=110)
+        if ticker_choice:
+            ticker_drop_down.set(ticker_choice)
+        ticker_drop_down.grid(row=1, column=6, pady=10, sticky='w')
+        
+        # Date dropdown box
+        date_drop_down = ctk.CTkOptionMenu(self, values=self.dates, command=self.dateAction, anchor='center')
+        if date_choice:
+            date_drop_down.set(date_choice)
+        date_drop_down.grid(row=1, column=4, pady=10, sticky='w')   
+        
+        
+    def setGrid(self, _):
+        self.drawGraph(ticker=self.master.pages['Hedgeye'][2])
         
         
     def drawTable(self, data):    
@@ -193,9 +177,9 @@ class HedgeyePage(CTkFrame):
         initcol = 6
         
         # Table label   
-        self.table_lable = CTkEntry(self, font=('', 20), justify='center', height=50)
-        self.table_lable.grid(row=(initrow - 1), column=initcol, columnspan=3, sticky='ew', pady=10)
-        self.table_lable.insert(END, 'Range and Performance Data') 
+        self.table_lable = ctk.CTkEntry(self, justify='center', height=50, font=(None, 20))
+        self.table_lable.grid(row=(initrow - 1), column=initcol, columnspan=3, pady=10, sticky='ew')
+        self.table_lable.insert(ctk.END, 'Range and Performance Data') 
           
         labels = ['Buy', 'Sell', 'Close', 'Range Asym - Buy (%)', 'Range Asym - Sell (%)', 'W/W Delta', 
                   '1-Day Delta (%)', '1-Week Delta (%)', '1-Month Delta (%)', '3-Month Delta (%)',
@@ -204,7 +188,7 @@ class HedgeyePage(CTkFrame):
         # Changing the style based on color mode
         style = ttk.Style()
         if self._get_appearance_mode() == 'dark':
-            background_color = '#0e161a'
+            background_color = '#131e23'
             row_color = '#373737'
             row_color2 = '#4B4B4B'
             text_color = 'white'
@@ -227,7 +211,7 @@ class HedgeyePage(CTkFrame):
         self.top_row.insert('', 'end', text='10s/2s Spread (bps)', values=(self.data[-1]['10s/2s Spread (bps)']), tags='tt')
         self.top_row.tag_configure('tt', background=background_color, foreground=text_color)
         self.top_row.column('col1', anchor='e')
-        self.top_row.grid(row=initrow, column=initcol, columnspan=3, sticky='nsew', pady=(0, 5))
+        self.top_row.grid(row=initrow, column=initcol, columnspan=3, pady=(0, 5), sticky='nsew')
         
         # Table tree
         self.table = ttk.Treeview(self, columns=('col1',), style='my.Treeview', show='tree')
@@ -245,7 +229,7 @@ class HedgeyePage(CTkFrame):
         self.table.tag_configure('odd', background=row_color2, foreground=text_color)
         self.table.column('col1', anchor='e')
 
-        self.table.grid(row=initrow, column=initcol, columnspan=3, rowspan=9, sticky='nsew', pady=62)
+        self.table.grid(row=initrow, column=initcol, columnspan=3, rowspan=9, pady=62, sticky='nsew')
 
 
     def drawGraph(self, ticker):
@@ -257,17 +241,15 @@ class HedgeyePage(CTkFrame):
         # Top left corner positions the label and table without adjusting it individually
         initrow = 4
         initcol = 0
-        
-        plt.rcParams['font.size'] = 12
-        
+                
         # Graph label
-        self.graph_lable = CTkEntry(self, font=('', 20), justify='right', height=50)
-        self.graph_lable.grid(row=(initrow - 1), column=initcol, columnspan=6, sticky='ew', padx=10)
-        self.graph_lable.insert(END, 'Trade Price View                  ')    
+        self.graph_lable = ctk.CTkEntry(self, justify='right', height=50, font=(None, 20))
+        self.graph_lable.grid(row=(initrow - 1), column=initcol, columnspan=6, padx=10, sticky='ew')
+        self.graph_lable.insert(ctk.END, 'Trade Price View                 ')    
         
         # Setting color scheme based on color mode of computer
         if self._get_appearance_mode() == 'dark':
-            face_color = '#0e161a'
+            face_color = '#131e23'
             label_color = 'white'
             close_line_color = '#C1C1C1'
             grid_color = '#8F8F8F'
@@ -326,11 +308,46 @@ class HedgeyePage(CTkFrame):
             ax.plot_date(dates[index_starts[-1]:-1], y3[index_starts[-1]:-1], color=close_line_color, linestyle='--', fmt='d')
         
         # ------------------------------------------------------------------------------------------------
-
+        # This chunk of code below is for splitting up the y-axis grid lines for the segment_button
+        
+        month_starts = []
+        grid_type = self.grid_split_seg_buttons.get()
+        if grid_type == 'No Y-Grid':
+            ax.yaxis.grid(False)
+        elif grid_type == 'M':
+            for month in range(1, 13):
+                month_dates = [d for d in dates if d.month == month]
+                if month_dates:
+                    month_starts.append(min(month_dates))
+        elif grid_type == '3M':
+            for month in range(1, 13, 3):
+                month_dates = [d for d in dates if d.month in range(month, month+3)]
+                if month_dates:
+                    month_starts.append(min(month_dates))
+        elif grid_type == '6M':
+            for month in range(1, 13, 6):
+                month_dates = [d for d in dates if d.month in range(month, month+6)]
+                if month_dates:
+                    month_starts.append(min(month_dates))
+        elif grid_type == '1Y':
+            prev_year = None
+            for month in range(1, 2):
+                month_dates = [d for d in dates if d.month == month]
+                if month_dates:
+                    month_start = min(month_dates)
+                    if prev_year is None or month_start.year != prev_year:
+                        month_starts.append(month_start)
+                        prev_year = month_start.year
+        
+        for month_start in month_starts: 
+            ax.axvline(month_start, linestyle='-', color=grid_color, zorder=-1, linewidth=0.8)
+                
+        # ------------------------------------------------------------------------------------------------
+            
         for tick in ax.get_xticklabels():
             tick.set_rotation(30)
             
-        ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+        ax.xaxis.set_major_formatter(mdates.DateFormatter('%y-%b-%d'))
         ax.autoscale_view()
         ax.tick_params(colors=label_color, grid_color=grid_color)
         ax.set_xlabel('Date', color=label_color)
@@ -338,21 +355,27 @@ class HedgeyePage(CTkFrame):
         ax.legend()
         ax.grid(axis='y', color=grid_color)
         
-        
         # Create the canvas and draw the plot
         canvas = FigureCanvasTkAgg(fig, master=self)
         canvas.draw()
 
         # Create the toolbar and add it to the window
-        toolbar = CustomToolbar(canvas, self)
+        toolbar = CustomToolbar(canvas, self, self._get_appearance_mode())
         toolbar.update()
-        toolbar.grid(row=initrow - 1, column=initcol, columnspan=3, sticky='w', padx=20)
+        toolbar.grid(row=initrow - 1, column=initcol, columnspan=3, padx=20, sticky='w')
               
-        canvas.get_tk_widget().grid(row=initrow, column=initcol, columnspan=6, rowspan=1, sticky='nsew', padx=10)
+        canvas.get_tk_widget().grid(row=initrow, column=initcol, columnspan=6, rowspan=1, padx=10, sticky='nsew')
         
         
 class CustomToolbar(NavigationToolbar2Tk):
-    def __init__(self, canvas_, parent_):
+    def __init__(self, canvas_, parent_, color_mode):
         super(CustomToolbar, self).__init__(canvas_, parent_, pack_toolbar=False)
-        self.config(background='#373737', highlightbackground='#373737', highlightcolor='#373737')
-        self._message_label.config(foreground='white', background='#373737')
+        
+        if color_mode == 'light':
+            color = 'gray85'
+            fcolor = 'black'
+        else:
+            color = '#373737'
+            fcolor = 'white'
+        self.config(background=color, highlightbackground=color, highlightcolor=color, cursor='none')
+        self._message_label.config(foreground=fcolor, background=color, font=(None, 16))
