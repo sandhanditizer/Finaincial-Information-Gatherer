@@ -38,11 +38,12 @@ class HedgeyePage(ctk.CTkFrame):
         button3.grid(row=1, column=2, padx=10, pady=10, sticky='ew')
         
         # Open settings
-        button4 = ctk.CTkButton(self, text='Credential Settings', command=self.openSettings, width=160)
+        button4 = ctk.CTkButton(self, text='Settings', command=lambda: Settings(self.master), width=160)
         button4.grid(row=0, column=8, padx=10, pady=10, sticky='e')
         
         # Month separator       
-        self.grid_split_seg_buttons = ctk.CTkSegmentedButton(self, values=['No Y-Grid', 'M', '3M', '6M', '1Y'], command=self.setGrid)
+        self.grid_split_seg_buttons = ctk.CTkSegmentedButton(self, values=['No Y-Grid', 'M', '3M', '6M', '1Y'], 
+                                                             command=lambda value: self.drawGraph(self.master.pages['Hedgeye'][2]))
         self.grid_split_seg_buttons.set('No Y-Grid')
         self.grid_split_seg_buttons.grid(row=0, column=5, columnspan=4, padx=10, pady=10, sticky='w')
                 
@@ -61,11 +62,11 @@ class HedgeyePage(ctk.CTkFrame):
         self.progress_bar.start()
         
     
-    def openSettings(self):
-        """
-        Displays settings widget. Will self close if a change is made.
-        """
-        Settings(self.master)
+    # def openSettings(self):
+    #     """
+    #     Displays settings widget. Will self close if a change is made.
+    #     """
+    #     Settings(self.master)
         
         
     def reloadPage(self, target_date=None, target_tick=None):
@@ -152,10 +153,6 @@ class HedgeyePage(ctk.CTkFrame):
         if date_choice:
             date_drop_down.set(date_choice)
         date_drop_down.grid(row=1, column=3, padx=10, pady=10, sticky='ew')   
-        
-        
-    def setGrid(self, _):
-        self.drawGraph(ticker=self.master.pages['Hedgeye'][2])
         
         
     def drawTable(self, data):    
@@ -369,5 +366,9 @@ class CustomToolbar(NavigationToolbar2Tk):
         else:
             color = '#373737'
             fcolor = 'white'
-        self.config(background=color, highlightbackground=color, highlightcolor=color, cursor='none')
+            
+        for thing in self.winfo_children():
+            thing.config(background=color)
+        
+        self.config(background=color)
         self._message_label.config(foreground=fcolor, background=color, font=(None, 16))
