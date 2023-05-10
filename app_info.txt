@@ -3,6 +3,7 @@ Hello Father!
 In here you will find information about the app including functionality information, limitations, and other things that I think you should know.
 
 ---Hedgeye Page Information---
+Hedgeye typically comes out with new daily data at around 8 AM EDT or 7 AM CT time. So to get new information just run the app or press `Reload Data` after 7 AM CT.
     `Reload Data` (button): 
 When pressed, this button will check if the data for the Hedgeye, NASDAQ, and NYSE pages are up-to-date. If not, it will make a web request to get updated data. After it successfully gets the new data, the all pages will reload automatically with up-to-date information. During the web requests you will see a progress bar to show you the app is still thinking.
 

@@ -182,14 +182,14 @@ class HedgeyePage(ctk.CTkFrame):
             row_color2 = '#4B4B4B'
             text_color = 'white'
             highlight_color = '#304a54'
-            style.configure('my.Treeview', rowheight=53, font=(None, 15), fieldbackground=background_color)
+            style.configure('my.Treeview', rowheight=53, font=(None, 13), fieldbackground=background_color)
         else:
             background_color = '#E5E5E5'
             row_color = '#F7F7F7'
             row_color2 = '#D3D3D3'
             text_color = 'black'
             highlight_color = '#476D7C'
-            style.configure('my.Treeview', rowheight=53, font=(None, 15), fieldbackground=background_color)
+            style.configure('my.Treeview', rowheight=53, font=(None, 13), fieldbackground=background_color)
             
         # Color change when clicking on the table
         style.map('my.Treeview', background=[('selected', highlight_color)], foreground=[('selected', 'white')])

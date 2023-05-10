@@ -30,11 +30,6 @@ def getDriver():
 
 
 class HedgeyeWebController:
-    def __init__(self):
-        self._driver = getDriver()
-        self._logged_in_driver = self._login()
-        
-    
     def _createWaitDriver(self, driver):
         """Creates a driver that waits a maximum of 10 seconds for the website to load correctly."""
         return WebDriverWait(driver, 10) 
@@ -47,26 +42,34 @@ class HedgeyeWebController:
             selenium.webdriver: If success.\n
             string: If failure.
         """
-        try:
-            LOGIN_URL = 'https://accounts.hedgeye.com/users/sign_in'
-            self._driver.get(LOGIN_URL)
-            
-            with open('DataCollection/config.json', 'r') as f:
-                login_payload = json.load(f)
+        LOGIN_URL = 'https://accounts.hedgeye.com/users/sign_in'
+        driver = getDriver()
+        driver.get(LOGIN_URL)
+        
+        with open('DataCollection/config.json', 'r') as f:
+            login_payload = json.load(f)
 
-            # Finds the email and password fields, and enter login credentials
-            email_field = self._driver.find_element(By.ID, 'user_email')
-            email_field.send_keys(login_payload['Payload'][0]['username'])
+        # Finds the email and password fields, and enter login credentials
+        email_field = driver.find_element(By.ID, 'user_email')
+        email_field.send_keys(login_payload['Payload'][0]['username'])
 
-            password_field = self._driver.find_element(By.ID, 'user_password')
-            password_field.send_keys(login_payload['Payload'][0]['password'])
+        password_field = driver.find_element(By.ID, 'user_password')
+        password_field.send_keys(login_payload['Payload'][0]['password'])
 
-            # Submits the login form
-            password_field.send_keys(Keys.RETURN)
-            
-            return self._driver
-        except:
-            return "Cannot log into Hedgeye's website. Contact your son for support."
+        # Submits the login form
+        password_field.send_keys(Keys.RETURN)
+        
+        # Attempt to move to the page that we need the data from
+        RISK_RANGE_SIGNALS_URL = 'https://app.hedgeye.com/feed_items/all?page=1&with_category=33-risk-range-signals'
+        driver.get(RISK_RANGE_SIGNALS_URL)
+        
+        # If not properly logged in
+        if driver.current_url != RISK_RANGE_SIGNALS_URL:
+            driver.quit()
+            return "Cannot log into Hedgeye's website. Go into settings and make sure your username and password is correct."
+
+        # Properly logged in
+        return driver
         
 
     def scrapeData(self):
@@ -75,26 +78,19 @@ class HedgeyeWebController:
         Returns:\n
             list: Data.
         """
-        if type(self._logged_in_driver) == str:
-            self._driver.quit()
-            return self._logged_in_driver
+        logged_in_driver = self._login()
+        if type(logged_in_driver) == str:
+            return logged_in_driver
 
-        try:
-            RISK_RANGE_SIGNALS_URL = 'https://app.hedgeye.com/feed_items/all?page=1&with_category=33-risk-range-signals'
-            self._logged_in_driver.get(RISK_RANGE_SIGNALS_URL)
-            
-            # Make second request in case of error
-            if self._logged_in_driver.current_url != RISK_RANGE_SIGNALS_URL:
-                self._logged_in_driver.get(RISK_RANGE_SIGNALS_URL)
-                
-            wait_driver = self._createWaitDriver(self._logged_in_driver)
+        try:                
+            wait_driver = self._createWaitDriver(logged_in_driver)
 
             rrs_table = wait_driver.until(EC.visibility_of_element_located((By.XPATH, '//*[@id="mid-col"]/div/div[1]/div/article/div/div[2]/table'))).get_attribute('textContent')
             date = wait_driver.until(EC.visibility_of_element_located((By.XPATH, '//*[starts-with(@id, "teaser_feed_item_")]/div[1]/time/span[2]'))).get_attribute('textContent')
         except:
             return "Cannot grab risk range data from Hedgeye's website. Website page has changed to something unrecognizable."
         finally:
-            self._logged_in_driver.quit()
+            logged_in_driver.quit()
             
         try:
             data = extract(rrs_table) # Formats data returns a list of dictionaries

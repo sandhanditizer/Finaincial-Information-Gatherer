@@ -27,7 +27,7 @@ where python
 ```
 
 ## Things to note - 2:
-If you get a popup that says "Cannot grab risk range data from Hedgeye's website. Website page has changed to something unrecognizable." Then that means hedgeye has temporarily changed the page structure. Don't freak out, it will change back to the structure that allows data to be scraped from it. As long as it runs before 11am every morning then you will capture the data before they temperarily change the page structure.
+If you get a popup that says "Cannot grab risk range data from Hedgeye's website. Website page has changed to something unrecognizable." Then that means hedgeye has temporarily changed the page structure. Don't freak out, it will change back to the structure that allows data to be scraped from it. They typically come out with new data every trading day at 8 AM EDT.
 
 ## Having the right browser:
 In `DataCollection/scrapeHedgeye.py` and `DataCollection/scrapeWSJ_Yahoo.py` the function `getDriver` will try to get drivers for Firefox or Chrome using selenium. If you do not have Firefox or Chrome installed, then please install one. Once a browser is installed, there is no further action needed. If there is a problem (rare) then look at seleniums documentation to get Firefox or Chrome to work. It might involve disabling a security feature. However, I did not have to change anything after downloading Firefox.
