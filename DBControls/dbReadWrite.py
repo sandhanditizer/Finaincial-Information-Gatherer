@@ -102,17 +102,17 @@ class Hedgeye(Base):
             sell (float): Sell price.\n
             close (float): Close price.\n
             delta_ww (float): Week over week delta.\n
-            od_delta (float): 1-Day delta.\n
-            ow_delta (float): 1-Week delta.\n
-            om_delta (float): 1-Month delta.\n
-            tm_delta (float): 3-Month delta.\n
-            sm_delta (float): 6-Month delta.\n
-            oy_delta (float): 1-Year delta.\n
-            ra_buy (float): Range asymmetry buy.\n
-            ra_sell (float): Range asymmetry sell.
+            od_delta (float): 1-Day delta (%).\n
+            ow_delta (float): 1-Week delta (%).\n
+            om_delta (float): 1-Month delta (%).\n
+            tm_delta (float): 3-Month delta (%).\n
+            sm_delta (float): 6-Month delta (%).\n
+            oy_delta (float): 1-Year delta (%).\n
+            ra_buy (float): Range asymmetry buy (%).\n
+            ra_sell (float): Range asymmetry sell (%).
         """
         with createSession() as session:
-            if Hedgeye.getData(date=date, ticker=ticker) == []:
+            if not Hedgeye.getData(date=date, ticker=ticker): # If new incoming data does not exist, add it to table
                 new_row = Hedgeye(date=date, ticker=ticker, description=description, 
                                   buy=buy, sell=sell, close=close, delta_ww=delta_ww, 
                                   od_delta=od_delta, ow_delta=ow_delta, om_delta=om_delta, tm_delta=tm_delta, sm_delta=sm_delta, oy_delta=oy_delta, 
@@ -226,7 +226,7 @@ class NASDAQ(Base):
             None
         """
         with createSession() as session:
-            if NASDAQ.getData(date=date) == None:
+            if not NASDAQ.getData(date=date): # If new incoming data does not exist, add it to table
                 new_row = NASDAQ(date=date, advancing_V=advancing_V, declining_V=declining_V, total_V=total_V, delta_V=delta_V, 
                                  close=close, upside_day=upside_day, downside_day=downside_day, advances=advances, 
                                  declines=declines, net_ad=net_ad, td_breakaway=td_breakaway, Td_breakaway=Td_breakaway, 
@@ -341,7 +341,7 @@ class NYSE(Base):
             None
         """
         with createSession() as session:
-            if NYSE.getData(date=date) == None:
+            if not NYSE.getData(date=date): # If new incoming data does not exist, add it to table
                 new_row = NYSE(date=date, advancing_V=advancing_V, declining_V=declining_V, total_V=total_V, delta_V=delta_V, 
                                  close=close, upside_day=upside_day, downside_day=downside_day, advances=advances, 
                                  declines=declines, net_ad=net_ad, td_breakaway=td_breakaway, Td_breakaway=Td_breakaway, 

@@ -5,6 +5,7 @@ from dbReadWrite import Hedgeye, NASDAQ, NYSE, createSession
 
 class TestHedgeye(unittest.TestCase):
     def test_read_write_functions(self):
+        """Tests getData, getAllDates, and writeData."""
         test_data = {
             'date': '1111-11-11',
             'ticker': 'TEST',
@@ -68,6 +69,7 @@ class TestHedgeye(unittest.TestCase):
 
 class TestNASDAQ(unittest.TestCase):
     def test_read_write_functions(self):
+        """Tests getData, getAllDates, and writeData."""
         test_data = {
             'date': '1111-11-11', 
             'advancing_V': 1.0, 
@@ -123,6 +125,7 @@ class TestNASDAQ(unittest.TestCase):
 
 class TestNYSE(unittest.TestCase):
     def test_read_write_functions(self):
+        """Tests getData, getAllDates, and writeData."""
         test_data = {
             'date': '1111-11-11', 
             'advancing_V': 1.0, 

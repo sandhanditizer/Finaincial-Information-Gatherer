@@ -1,7 +1,6 @@
 from DataCollection.websiteControllers import HedgeyeWebController, CompositesWebController
 from DBControls.hedgeyePrep import add_row as addHedgeyeRow
-from DBControls.nasdaqPrep import add_row as addNasdaqRow
-from DBControls.nysePrep import add_row as addNyseRow
+from DBControls.compositePrep import add_row as addCompositeRow
 from DBControls.dbReadWrite import Hedgeye, NASDAQ, NYSE
 from socket import create_connection
 from threading import Thread
@@ -49,13 +48,13 @@ def updateNasdaqNyseTables():
     else:
         try:
             date = data['Date']
-            addNasdaqRow(date=date, 
-                    advancing_V=data['NASDAQ Advancing Volume'], declining_V=data['NASDAQ Declining Volume'],
+            addCompositeRow(NASDAQ, date=date, 
+                    advancing_V=data['NASDAQ Advancing Volume'], declining_V=data['NASDAQ Declining Volume'], total_V=data['NASDAQ Total Volume'], 
                     close=data['NASDAQ Close'], advances=data['NASDAQ Advances'], declines=data['NASDAQ Declines'], 
                     new_highs=data['NASDAQ New Highs'], new_lows=data['NASDAQ New Lows'])
                 
-            addNyseRow(date=date, 
-                    advancing_V=data['NYSE Advancing Volume'], declining_V=data['NYSE Declining Volume'],
+            addCompositeRow(NYSE, date=date, 
+                    advancing_V=data['NYSE Advancing Volume'], declining_V=data['NYSE Declining Volume'], total_V=data['NYSE Total Volume'], 
                     close=data['NYSE Close'], advances=data['NYSE Advances'], declines=data['NYSE Declines'], 
                     new_highs=data['NYSE New Highs'], new_lows=data['NYSE New Lows'])
         except:

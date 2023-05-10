@@ -1,30 +1,22 @@
 """
-To properly run the test suite, you need to remove the prepended folder location, 'DBControls' 
-from the imports in files being tested. You also need to remove 'DBControls/' on line 7
-in 'dbReadWrite.py'.
+You need to remove 'DBControls/' on line 7 in 'dbReadWrite.py' before running tests.
+You also need to remove the prepended 'DBControls' for identifying folder location in hedgeyePrep.py.
 """
 
 import unittest
-from test_dbRead import TestHedgeyeRead, TestNYSERead, TestNASDAQRead
-from test_dbWrite import TestHedgeyeWrite, TestNYSEWrite, TestNASDAQWrite
+from test_dbReadWrite import TestHedgeye, TestNASDAQ, TestNYSE
 import test_hedgeyePrep as hedgeye
-import test_nasdaqPrep as nasdaq 
-import test_nysePrep as nyse
+import test_compositePrep as composite
 
 
 test_suite = unittest.TestSuite()
 
-# From test_dbRead
-test_suite.addTest(unittest.makeSuite(TestHedgeyeRead))
-test_suite.addTest(unittest.makeSuite(TestNYSERead))
-test_suite.addTest(unittest.makeSuite(TestNASDAQRead))
+# Testing all read and write functions
+test_suite.addTest(unittest.makeSuite(TestHedgeye))
+test_suite.addTest(unittest.makeSuite(TestNYSE))
+test_suite.addTest(unittest.makeSuite(TestNASDAQ))
 
-# From test_dbWrite
-test_suite.addTest(unittest.makeSuite(TestHedgeyeWrite))
-test_suite.addTest(unittest.makeSuite(TestNYSEWrite))
-test_suite.addTest(unittest.makeSuite(TestNASDAQWrite))
-
-# From test_hedgeyePrep
+# Testing all metric calculations
 test_suite.addTest(unittest.makeSuite(hedgeye.TestDelta_WW))
 test_suite.addTest(unittest.makeSuite(hedgeye.TestOD_Delta))
 test_suite.addTest(unittest.makeSuite(hedgeye.TestOW_Delta))
@@ -36,39 +28,21 @@ test_suite.addTest(unittest.makeSuite(hedgeye.TestRA_Buy))
 test_suite.addTest(unittest.makeSuite(hedgeye.TestRA_Sell))
 test_suite.addTest(unittest.makeSuite(hedgeye.TestAddRow))
 
-# From test_nasdaqPrep
-test_suite.addTest(unittest.makeSuite(nasdaq.TestTotalVolume))
-test_suite.addTest(unittest.makeSuite(nasdaq.TestDeltaVolume))
-test_suite.addTest(unittest.makeSuite(nasdaq.TestUpsideDay))
-test_suite.addTest(unittest.makeSuite(nasdaq.TestDownsideDay))
-test_suite.addTest(unittest.makeSuite(nasdaq.TestNetAD))
-test_suite.addTest(unittest.makeSuite(nasdaq.TesttdBreakawayMomentum))
-test_suite.addTest(unittest.makeSuite(nasdaq.TestTdBreakawayMomentum))
-test_suite.addTest(unittest.makeSuite(nasdaq.TestAdvanceDeclineRatio))
-test_suite.addTest(unittest.makeSuite(nasdaq.TestAdvanceDeclineThrust))
-test_suite.addTest(unittest.makeSuite(nasdaq.TestFDAdvanceDeclineThrust))
-test_suite.addTest(unittest.makeSuite(nasdaq.TestFDUpDownVolume))
-test_suite.addTest(unittest.makeSuite(nasdaq.TestNetHighsLows))
-test_suite.addTest(unittest.makeSuite(nasdaq.TestTODAverageHighsLows))
-test_suite.addTest(unittest.makeSuite(nasdaq.TestSTDAverageHighsLows))
-test_suite.addTest(unittest.makeSuite(nasdaq.TestAddRow))
-
-# From test_nysePrep
-test_suite.addTest(unittest.makeSuite(nyse.TestTotalVolume))
-test_suite.addTest(unittest.makeSuite(nyse.TestDeltaVolume))
-test_suite.addTest(unittest.makeSuite(nyse.TestUpsideDay))
-test_suite.addTest(unittest.makeSuite(nyse.TestDownsideDay))
-test_suite.addTest(unittest.makeSuite(nyse.TestNetAD))
-test_suite.addTest(unittest.makeSuite(nyse.TesttdBreakawayMomentum))
-test_suite.addTest(unittest.makeSuite(nyse.TestTdBreakawayMomentum))
-test_suite.addTest(unittest.makeSuite(nyse.TestAdvanceDeclineRatio))
-test_suite.addTest(unittest.makeSuite(nyse.TestAdvanceDeclineThrust))
-test_suite.addTest(unittest.makeSuite(nyse.TestFDAdvanceDeclineThrust))
-test_suite.addTest(unittest.makeSuite(nyse.TestFDUpDownVolume))
-test_suite.addTest(unittest.makeSuite(nyse.TestNetHighsLows))
-test_suite.addTest(unittest.makeSuite(nyse.TestTODAverageHighsLows))
-test_suite.addTest(unittest.makeSuite(nyse.TestSTDAverageHighsLows))
-test_suite.addTest(unittest.makeSuite(nyse.TestAddRow))
+# Testing all metric calculations
+test_suite.addTest(unittest.makeSuite(composite.TestVolumeDelta))
+test_suite.addTest(unittest.makeSuite(composite.TestUpsideDay))
+test_suite.addTest(unittest.makeSuite(composite.TestDownsideDay))
+test_suite.addTest(unittest.makeSuite(composite.TestNetAD))
+test_suite.addTest(unittest.makeSuite(composite.TesttdBreakawayMomentum))
+test_suite.addTest(unittest.makeSuite(composite.TestTdBreakawayMomentum))
+test_suite.addTest(unittest.makeSuite(composite.TestAdvanceDeclineRatio))
+test_suite.addTest(unittest.makeSuite(composite.TestAdvanceDeclineThrust))
+test_suite.addTest(unittest.makeSuite(composite.TestFDAdvanceDeclineThrust))
+test_suite.addTest(unittest.makeSuite(composite.TestFDUpDownVolume))
+test_suite.addTest(unittest.makeSuite(composite.TestNetHighsLows))
+test_suite.addTest(unittest.makeSuite(composite.TestTODAverageHighsLows))
+test_suite.addTest(unittest.makeSuite(composite.TestSTDAverageHighsLows))
+test_suite.addTest(unittest.makeSuite(composite.TestAddRow))
 
 
 
