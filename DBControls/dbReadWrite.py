@@ -1,23 +1,27 @@
-from sqlalchemy.orm import sessionmaker, declarative_base
 import sqlalchemy as sqla
+from sqlalchemy.orm import sessionmaker, declarative_base
 from datetime import datetime
+from contextlib import contextmanager
 
 
 Base = declarative_base()
 db_filename = 'DBControls/market_data.db'
 
 
+@contextmanager
 def createSession():
-    """Every interaction with the database will be done through a Session object. 
-    So this function will be called to begin a new interaction.
     """
+    A context manager that creates a new session for interacting with the database. \n
+    Returns:\n
+        A context manager yielding a new session instance.
+    """
+    engine = sqla.create_engine(f'sqlite:///{db_filename}', )
+    Session = sessionmaker(bind=engine)
+    session = Session()
     try:
-        # Open a editor session with the database
-        engine = sqla.create_engine(f'sqlite:///{db_filename}', )
-        Session = sessionmaker(bind=engine)
-        return Session()
-    except:
-        raise ConnectionError(f"Cannot create an engine or make a session for {db_filename}.\n")
+        yield session
+    finally:
+        session.close()
 
 
 class Hedgeye(Base):
@@ -38,81 +42,62 @@ class Hedgeye(Base):
     oy_delta = sqla.Column('1Y Delta (%)', sqla.Float)
     ra_buy = sqla.Column('Range Asymmetry Buy (%)', sqla.Float)
     ra_sell = sqla.Column('Range Asymmetry Sell (%)', sqla.Float)
-        
 
+ 
+    @staticmethod
     def getData(date=None, ticker=None):
         """
-        Gets data from database.\n
+        Retrieves data from the database based on the given date and/or ticker.\n
         Args:\n
-            date (string, optional): yyyy-mm-dd. Defaults to None.\n
-            ticker (string, optional): Form ABC...Z. Defaults to None.\n
-            most_recent (bool, optional): If true, grabs the most recent results from database. Defaults to False.\n
+            date (str, optional): Date in the format 'yyyy-mm-dd'. Defaults to None.\n
+            ticker (str, optional): Ticker symbol. Defaults to None.\n
         Returns:\n
-            list: If passing only a date, ticker, or most_recent=True. If most_recent=True, date and ticker == None.\n
-            Query Object: If passing date and ticker.\n
+            List[sqlalchemy.orm.Query]: A list of query results.\n
+        Raises:\n
+            ValueError: If the date is not in the correct format.
         """
-        with createSession() as session:                  
-            if date == '' or ticker == '':  
-                raise ValueError('Date or ticker is an empty string.\n')
-            
-            if isinstance(date, str):
+        with createSession() as session:
+            query = session.query(Hedgeye)
+
+            if date:
                 try:
                     datetime.strptime(date, '%Y-%m-%d')
-                except:
-                    raise ValueError('Date needs to be in the format yyyy-mm-dd.\n')
-            
-            if date and not ticker:
-                result = session.query(Hedgeye).\
-                    filter(Hedgeye.date == date).\
-                    order_by(sqla.asc(Hedgeye.date)).all()
-                return result
-            
-            elif ticker and not date:
-                result = session.query(Hedgeye).\
-                    filter(Hedgeye.ticker == ticker).\
-                    order_by(sqla.asc(Hedgeye.date)).all()
-                return result
-            
-            elif date and ticker:
-                result = session.query(Hedgeye).\
-                    filter(Hedgeye.date == date).\
-                    filter(Hedgeye.ticker == ticker).first()
-                return result
-            
-            elif not date and not ticker:
+                    query = query.filter(Hedgeye.date == date)
+                except ValueError:
+                    raise ValueError(f'Date ({date}) needs to be in the format yyyy-mm-dd.')
+
+            if ticker:
+                query = query.filter(Hedgeye.ticker == ticker)
+
+            if not date and not ticker: # Gets most recent data by date in table
                 most_recent_date = session.query(sqla.func.max(Hedgeye.date)).scalar()
-                result = session.query(Hedgeye).\
-                    filter(Hedgeye.date == most_recent_date).\
-                    order_by(sqla.asc(Hedgeye.date)).all()
-                return result
-            
-            else:
-                raise ValueError("""Need either date, ticker, or both to complete data lookup. 
-                                 Cannot pass date or ticker when setting most_recent=True.\n""")
-        
-    
+                query = query.filter(Hedgeye.date == most_recent_date)
+
+            result = query.order_by(sqla.asc(Hedgeye.date)).all() # Will return None if the filters don't find anything
+
+            return result
+
+
+    @staticmethod
     def getAllDates():
-        """Returns a list of all unique dates in database in ascending order.\n"""
-        with createSession() as session:
-            result = session.query(Hedgeye.date).\
-                distinct().\
-                order_by(sqla.asc(Hedgeye.date)).all()
-                
-        dates = []
-        for r in result:
-            dates.append(r[0])
-            
-        return dates
-        
-        
-    def writeData(date, ticker, description, buy, sell, close, delta_ww, od_delta, ow_delta, om_delta, 
-                  tm_delta, sm_delta, oy_delta, ra_buy, ra_sell):
         """
-        Writes given data to database.\n
+        etrieves a list of all unique dates in the database in ascending order.\n        
+        Returns:\n
+            List[str]: A list of unique dates in the format 'yyyy-mm-dd'.
+        """
+        with createSession() as session:
+            result = session.query(Hedgeye.date).distinct().order_by(sqla.asc(Hedgeye.date)).all()
+            return [r[0] for r in result]
+        
+        
+    @staticmethod
+    def writeData(date, ticker, description, buy, sell, close, delta_ww, od_delta, ow_delta, om_delta, tm_delta, sm_delta, oy_delta, ra_buy, ra_sell):
+        """
+        Writes the given data to the database.\n
         Args:\n
-            date (string): 'yyyy-mm-dd'\n
-            ticker (string): 'ABC...Z'\n
-            description (string): Ticker name.\n
+            date (str): Date in the format 'yyyy-mm-dd'.\n
+            ticker (str): Ticker symbol.\n
+            description (str): Ticker name.\n
             buy (float): Buy price.\n
             sell (float): Sell price.\n
             close (float): Close price.\n
@@ -124,20 +109,15 @@ class Hedgeye(Base):
             sm_delta (float): 6-Month delta.\n
             oy_delta (float): 1-Year delta.\n
             ra_buy (float): Range asymmetry buy.\n
-            ra_sell (float): Range asymmetry sell.\n
+            ra_sell (float): Range asymmetry sell.
         """
         with createSession() as session:
-            if Hedgeye.getData(date=date, ticker=ticker) == None:
-                try:
-                    new_row = Hedgeye(date=date, ticker=ticker, description=description, buy=buy, 
-                                            sell=sell, close=close, delta_ww=delta_ww, od_delta=od_delta, 
-                                            ow_delta=ow_delta, om_delta=om_delta, tm_delta=tm_delta, 
-                                            sm_delta=sm_delta, oy_delta=oy_delta, ra_buy=ra_buy, ra_sell=ra_sell)
-                    session.add(new_row)
-                except:
-                    session.rollback()
-                    raise RuntimeError('Cannot add new data to Hedgeye table.\n')
-            
+            if Hedgeye.getData(date=date, ticker=ticker) == []:
+                new_row = Hedgeye(date=date, ticker=ticker, description=description, 
+                                  buy=buy, sell=sell, close=close, delta_ww=delta_ww, 
+                                  od_delta=od_delta, ow_delta=ow_delta, om_delta=om_delta, tm_delta=tm_delta, sm_delta=sm_delta, oy_delta=oy_delta, 
+                                  ra_buy=ra_buy, ra_sell=ra_sell)
+                session.add(new_row)
                 session.commit()
             
 
@@ -152,7 +132,7 @@ class NASDAQ(Base):
     total_V = sqla.Column('Total Volume', sqla.Float)
     delta_V = sqla.Column('Change in Volume (%)', sqla.Float)
     close = sqla.Column('Close (%)', sqla.Float)
-    upside_day = sqla.Column('Upside Day (%)')
+    upside_day = sqla.Column('Upside Day (%)', sqla.Float)
     downside_day = sqla.Column('Downside Day (%)', sqla.Float)
     advances = sqla.Column('Advances', sqla.Float)
     declines = sqla.Column('Declines', sqla.Float)
@@ -168,95 +148,91 @@ class NASDAQ(Base):
     net_hl = sqla.Column('Net (Highs/Lows)', sqla.Float)
     tod_avg = sqla.Column('21-Day Average (Highs/Lows)', sqla.Float)
     std_avg = sqla.Column('63-Day Average (Highs/Lows)', sqla.Float)
+      
         
-
+    @staticmethod
     def getData(date=None):
         """
-        Gets data from database.\n
+        Retrieve data from the NASDAQ table in the database.\n
         Args:\n
-            date (string): yyyy-mm-dd.\n
-            most_recent (bool, optional): If true gets a list of most recent data in database. Defaults to False.\n
+            date (str, optional): A string representing the date in the format 'yyyy-mm-dd'. If not provided, the most recent data by date in the table is retrieved.\n
         Returns:\n
-            Query Object: Row from databse.\n
+            An instance of the NASDAQ model class with the retrieved data.\n
+        Raises:\n
+            ValueError: If the date argument is not in the correct format 'yyyy-mm-dd'.
         """
-        with createSession() as session:  
-            if date == '':
-                raise ValueError('Date is an empty string.\n')
-            
-            if isinstance(date, str):
-                try:
-                    datetime.strptime(date, '%Y-%m-%d')
-                except:
-                    raise ValueError('Date needs to be in the format yyyy-mm-dd.\n')
-            
-            if date:
-                result = session.query(NASDAQ).\
-                    filter(NASDAQ.date == date).first()
-                return result
-            
-            else:
-                most_recent_date = session.query(sqla.func.max(NASDAQ.date)).scalar()
-                result = session.query(NASDAQ).\
-                    filter(NASDAQ.date == most_recent_date).first()
-                return result
-        
-        
-    def getAllDates():
-        """Returns a list of all unique dates in database in ascending order.\n"""
-        with createSession() as session:        
-            result = session.query(NASDAQ.date).\
-                distinct().\
-                order_by(sqla.asc(NASDAQ.date)).all()
-                
-        dates = []
-        for r in result:
-            dates.append(r[0])
-            
-        return dates
-        
+        with createSession() as session:
+            if not date: # Gets most recent data by date in table
+                date = session.query(sqla.func.max(NASDAQ.date)).scalar()
 
-    def writeData(date, advancing_V, declining_V, total_V, delta_V, close, upside_day, downside_day, 
-                   advances, declines, net_ad, td_breakaway, Td_breakaway, ad_ratio, ad_thrust, 
-                   fd_ad_thrust, fd_ud_V_thrust, new_highs, new_lows, net_hl, tod_avg, std_avg):
+            try:
+                datetime.strptime(date, '%Y-%m-%d')
+            except ValueError:
+                raise ValueError('Date needs to be in the format yyyy-mm-dd.')
+
+            result = session.query(NASDAQ).filter(NASDAQ.date == date).first()
+            return result
+   
+        
+    @staticmethod
+    def getAllDates():
         """
-        Writes data to database.\n
+        Retrieve all the distinct dates from the NASDAQ table in the database, ordered in ascending order.\n
+        Returns:\n
+            A list of strings representing the dates in the format 'yyyy-mm-dd'.
+        """
+        with createSession() as session:
+            result = (
+                session.query(NASDAQ.date)
+                .distinct()
+                .order_by(sqla.asc(NASDAQ.date))
+                .all()
+            )
+
+        dates = [r[0] for r in result]
+        return dates
+  
+        
+    @staticmethod
+    def writeData(date, advancing_V, declining_V, total_V, delta_V, close, upside_day, downside_day, 
+                  advances, declines, net_ad, td_breakaway, Td_breakaway, ad_ratio, ad_thrust, 
+                  fd_ad_thrust, fd_ud_V_thrust, new_highs, new_lows, net_hl, tod_avg, std_avg):
+        """
+        Write new data to the NASDAQ table in the database.\n
         Args:\n
-            date (string): 'yyyy-mm-dd'.\n
-            advancing_V (float): Advancing Volume.\n
-            declining_V (float): Declining Volume.\n
-            total_V (float): Total Volume.\n
-            delta_V (float): Change in Volume (%).\n
-            close (float): Close (%).\n
-            upside_day (float): Upside Day (%).\n
-            downside_day (float): Downside Day (%).\n
-            advances (float): Advances.\n
-            declines (float): Declines.\n
-            net_ad (float): Net (Advances/Declines).\n
-            td_breakaway (float): 10-Day Breakaway Momentum.\n
-            Td_breakaway (float): 20-Day Breakaway Momentum.\n
-            ad_ratio (float): Advance/Decline Ratio.\n
-            ad_thrust (float): Advance/Decline Thrust (%).\n
-            fd_ad_thrust (float): 5-Day Advance/Decline Thrust (%).\n
-            fd_ud_V_thrust (float): 5-Day Up/Down Volume Thrust (%).\n
-            new_highs (float): New Highs.\n
-            new_lows (float): New Lows.\n
-            net_hl (float): Net (Highs/Lows).\n
-            tod_avg (float): 21-Day Average.\n
-            std_avg (float): 63-Day Average.\n
+            date (str): Date in the format 'yyyy-mm-dd'.\n
+            advancing_V (float): Advancing volume for the day.\n
+            declining_V (float): Dclining volume for the day.\n
+            total_V (float): Total volume for the day.\n
+            delta_V (float): Change in volumne (%).\n
+            close (float): Closing percentage for the day (%).\n
+            upside_day (float): Upside day (i.e. the closing price was higher than the previous day's closing price) (%).\n
+            downside_day (float): Downside day (i.e. the closing price was lower than the previous day's closing price) (%).\n
+            advances (float): Advancing issues for the day.\n
+            declines (float): Declining issues for the day.\n
+            net_ad (float): Net advancing issues for the day.\n
+            td_breakaway (float): 10-day breakaway.\n
+            Td_breakaway (float): 20-day breakaway.\n
+            ad_ratio (float): Advance-decline ratio for the day.\n
+            ad_thrust (float): Advance-decline thrust (%).\n
+            fd_ad_thrust (float): 5-day advance-decline thrust day (%).\n
+            fd_ud_V_thrust (float): 5-day upside volume thrust day (%).\n
+            new_highs (float): New highs for the day.\n
+            new_lows (float): New lows for the day.\n
+            net_hl (float): Net new highs for the day.\n
+            tod_avg (float): 21-day average for the day (Highs/Lows).\n
+            std_avg (float): 63-day verage for the day (Highs/Lows).\n
+        Returns:\n
+            None
         """
         with createSession() as session:
             if NASDAQ.getData(date=date) == None:
-                try:
-                    new_row = NASDAQ(date=date, advancing_V=advancing_V, declining_V=declining_V, total_V=total_V, delta_V=delta_V, 
-                                        close=close, upside_day=upside_day, downside_day=downside_day, advances=advances, 
-                                        declines=declines, net_ad=net_ad, td_breakaway=td_breakaway, Td_breakaway=Td_breakaway, 
-                                        ad_ratio=ad_ratio, ad_thrust=ad_thrust, fd_ad_thrust=fd_ad_thrust, fd_ud_V_thrust=fd_ud_V_thrust, 
-                                        new_highs=new_highs, new_lows=new_lows, net_hl=net_hl, tod_avg=tod_avg, std_avg=std_avg)
-                    session.add(new_row)
-                except:
-                    session.rollback()
-                    raise RuntimeError('Cannot add new data to NASDAQ table.\n')
-                
+                new_row = NASDAQ(date=date, advancing_V=advancing_V, declining_V=declining_V, total_V=total_V, delta_V=delta_V, 
+                                 close=close, upside_day=upside_day, downside_day=downside_day, advances=advances, 
+                                 declines=declines, net_ad=net_ad, td_breakaway=td_breakaway, Td_breakaway=Td_breakaway, 
+                                 ad_ratio=ad_ratio, ad_thrust=ad_thrust, fd_ad_thrust=fd_ad_thrust, fd_ud_V_thrust=fd_ud_V_thrust, 
+                                 new_highs=new_highs, new_lows=new_lows, net_hl=net_hl, tod_avg=tod_avg, std_avg=std_avg)
+                session.add(new_row)
                 session.commit()
 
 
@@ -289,93 +265,87 @@ class NYSE(Base):
     std_avg = sqla.Column('63-Day Average (Highs/Lows)', sqla.Float)
         
 
+    @staticmethod
     def getData(date=None):
         """
-        Gets data from database.\n
+        Retrieve data from the NYSE table in the database.\n
         Args:\n
-            date (string): yyyy-mm-dd.\n
-            most_recent (bool, optional): If true gets a list of most recent data in database. Defaults to False.\n
+            date (str, optional): A string representing the date in the format 'yyyy-mm-dd'. If not provided, the most recent data by date in the table is retrieved.\n
         Returns:\n
-            Query Object: Row from databse.\n
+            An instance of the NYSE model class with the retrieved data.\n
+        Raises:\n
+            ValueError: If the date argument is not in the correct format 'yyyy-mm-dd'.
         """
-        with createSession() as session:    
-            if date == '':
-                raise ValueError('Date is an empty string.\n')
-            
-            if isinstance(date, str):
-                try:
-                    datetime.strptime(date, '%Y-%m-%d')
-                except:
-                    raise ValueError('Date needs to be in the format yyyy-mm-dd.\n')
-            
-            if date:
-                result = session.query(NYSE).\
-                    filter(NYSE.date == date).first()
-                return result
-            
-            else:
-                most_recent_date = session.query(sqla.func.max(NYSE.date)).scalar()
-                result = session.query(NYSE).\
-                    filter(NYSE.date == most_recent_date).first()
-                return result
+        with createSession() as session:
+            if not date: # Gets most recent data by date in table
+                date = session.query(sqla.func.max(NYSE.date)).scalar()
+
+            try:
+                datetime.strptime(date, '%Y-%m-%d')
+            except ValueError:
+                raise ValueError('Date needs to be in the format yyyy-mm-dd.')
+
+            result = session.query(NYSE).filter(NYSE.date == date).first()
+            return result
+   
         
-
+    @staticmethod
     def getAllDates():
-        """Returns a list of all unique dates in database in ascending order.\n"""
-        with createSession() as session:        
-            result = session.query(NYSE.date).\
-                distinct().\
-                order_by(sqla.asc(NYSE.date)).all()
-
-        dates = []
-        for r in result:
-            dates.append(r[0])
-            
-        return dates
-
-
-    def writeData(date, advancing_V, declining_V, total_V, delta_V, close, upside_day, downside_day, 
-                   advances, declines, net_ad, td_breakaway, Td_breakaway, ad_ratio, ad_thrust, 
-                   fd_ad_thrust, fd_ud_V_thrust, new_highs, new_lows, net_hl, tod_avg, std_avg):
         """
-        Writes data to database.\n
+        Retrieve all the distinct dates from the NYSE table in the database, ordered in ascending order.\n
+        Returns:\n
+            A list of strings representing the dates in the format 'yyyy-mm-dd'.
+        """
+        with createSession() as session:
+            result = (
+                session.query(NYSE.date)
+                .distinct()
+                .order_by(sqla.asc(NYSE.date))
+                .all()
+            )
+
+        dates = [r[0] for r in result]
+        return dates
+  
+        
+    @staticmethod
+    def writeData(date, advancing_V, declining_V, total_V, delta_V, close, upside_day, downside_day, 
+                  advances, declines, net_ad, td_breakaway, Td_breakaway, ad_ratio, ad_thrust, 
+                  fd_ad_thrust, fd_ud_V_thrust, new_highs, new_lows, net_hl, tod_avg, std_avg):
+        """
+        Write new data to the NYSE table in the database.\n
         Args:\n
-            date (string): 'yyyy-mm-dd'.\n
-            advancing_V (float): Advancing Volume.\n
-            declining_V (float): Declining Volume.\n
-            total_V (float): Total Volume.\n
-            delta_V (float): Change in Volume (%).\n
-            close (float): Close (%).\n
-            upside_day (float): Upside Day (%).\n
-            downside_day (float): Downside Day (%).\n
-            advances (float): Advances.\n
-            declines (float): Declines.\n
-            net_ad (float): Net (Advances/Declines).\n
-            td_breakaway (float): 10-Day Breakaway Momentum.\n
-            Td_breakaway (float): 20-Day Breakaway Momentum.\n
-            ad_ratio (float): Advance/Decline Ratio.\n
-            ad_thrust (float): Advance/Decline Thrust (%).\n
-            fd_ad_thrust (float): 5-Day Advance/Decline Thrust (%).\n
-            fd_ud_V_thrust (float): 5-Day Up/Down Volume Thrust (%).\n
-            new_highs (float): New Highs.\n
-            new_lows (float): New Lows.\n
-            net_hl (float): Net (Highs/Lows).\n
-            tod_avg (float): 21-Day Average.\n
-            std_avg (float): 63-Day Average.\n
+            date (str): Date in the format 'yyyy-mm-dd'.\n
+            advancing_V (float): Advancing volume for the day.\n
+            declining_V (float): Dclining volume for the day.\n
+            total_V (float): Total volume for the day.\n
+            delta_V (float): Change in volumne (%).\n
+            close (float): Closing percentage for the day (%).\n
+            upside_day (float): Upside day (i.e. the closing price was higher than the previous day's closing price) (%).\n
+            downside_day (float): Downside day (i.e. the closing price was lower than the previous day's closing price) (%).\n
+            advances (float): Advancing issues for the day.\n
+            declines (float): Declining issues for the day.\n
+            net_ad (float): Net advancing issues for the day.\n
+            td_breakaway (float): 10-day breakaway.\n
+            Td_breakaway (float): 20-day breakaway.\n
+            ad_ratio (float): Advance-decline ratio for the day.\n
+            ad_thrust (float): Advance-decline thrust (%).\n
+            fd_ad_thrust (float): 5-day advance-decline thrust day (%).\n
+            fd_ud_V_thrust (float): 5-day upside volume thrust day (%).\n
+            new_highs (float): New highs for the day.\n
+            new_lows (float): New lows for the day.\n
+            net_hl (float): Net new highs for the day.\n
+            tod_avg (float): 21-day average for the day (Highs/Lows).\n
+            std_avg (float): 63-day verage for the day (Highs/Lows).\n
+        Returns:\n
+            None
         """
         with createSession() as session:
             if NYSE.getData(date=date) == None:
-                try:
-                    new_row = NYSE(date=date, advancing_V=advancing_V, declining_V=declining_V, total_V=total_V, 
-                                delta_V=delta_V, close=close, upside_day=upside_day, downside_day=downside_day, 
-                                advances=advances, declines=declines, net_ad=net_ad, td_breakaway=td_breakaway, 
-                                Td_breakaway=Td_breakaway, ad_ratio=ad_ratio, ad_thrust=ad_thrust, fd_ad_thrust=fd_ad_thrust,
-                                fd_ud_V_thrust=fd_ud_V_thrust, new_highs=new_highs, new_lows=new_lows, net_hl=net_hl, 
-                                tod_avg=tod_avg, std_avg=std_avg)
-                    
-                    session.add(new_row)
-                except:
-                    session.rollback()
-                    raise RuntimeError('Cannot add new data to NYSE table.\n')
-                    
+                new_row = NYSE(date=date, advancing_V=advancing_V, declining_V=declining_V, total_V=total_V, delta_V=delta_V, 
+                                 close=close, upside_day=upside_day, downside_day=downside_day, advances=advances, 
+                                 declines=declines, net_ad=net_ad, td_breakaway=td_breakaway, Td_breakaway=Td_breakaway, 
+                                 ad_ratio=ad_ratio, ad_thrust=ad_thrust, fd_ad_thrust=fd_ad_thrust, fd_ud_V_thrust=fd_ud_V_thrust, 
+                                 new_highs=new_highs, new_lows=new_lows, net_hl=net_hl, tod_avg=tod_avg, std_avg=std_avg)
+                session.add(new_row)
                 session.commit()

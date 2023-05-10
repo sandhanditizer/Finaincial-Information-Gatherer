@@ -28,8 +28,7 @@ def updateHedgeyeTable():
         try:
             date = data.pop() # Removes date information
             for d in data:
-                addHedgeyeRow(date=date, ticker=d['Ticker'], description=d['Description'], 
-                        buy=d['Buy'], sell=d['Sell'], close=d['Close'])
+                addHedgeyeRow(date=date, ticker=d['Ticker'], description=d['Description'], buy=d['Buy'], sell=d['Sell'], close=d['Close'])
         except:
             return 'Cannot load newest Hedgeye data into database.'
         
@@ -153,55 +152,35 @@ def summonHedgeyeData(date=None, ticker=None, all_dates=False):
         
     data = []
     results = Hedgeye.getData(date=date, ticker=ticker)
+    tens_close = 0
+    twos_close = 0
     
-    if type(results) == list:
-        tens_close = 0
-        twos_close = 0
-        
-        for r in results:
-            data.append(
-                {'Date': r.date,
-                 'Ticker': r.ticker,
-                 'Description': r.description,
-                 'Buy': r.buy,
-                 'Sell': r.sell,
-                 'Close': r.close,
-                 'W/W Delta': r.delta_ww,
-                 '1-Day Delta (%)': r.od_delta,
-                 '1-Week Delta (%)': r.ow_delta,
-                 '1-Month Delta (%)': r.om_delta,
-                 '3-Month Delta (%)': r.tm_delta,
-                 '6-Month Delta (%)': r.sm_delta,
-                 '1-Year Delta (%)': r.oy_delta,
-                 'Range Asym - Buy (%)': r.ra_buy,
-                 'Range Asym - Sell (%)': r.ra_sell
-                })
-            
-            if r.ticker == 'UST10Y':
-                tens_close = r.close
-            elif r.ticker == 'UST2Y':
-                twos_close = r.close
-                
-        # Calculating the 10s/2s spread on the spot instead of storing them in the database
-        data.append({'10s/2s Spread (bps)': round((tens_close - twos_close) * 100, 2)})      
-    else:
+    for r in results:
         data.append(
-            {'Date': results.date,
-                'Ticker': results.ticker,
-                'Description': results.description,
-                'Buy': results.buy,
-                'Sell': results.sell,
-                'Close': results.close,
-                'W/W Delta': results.delta_ww,
-                '1-Day Delta (%)': results.od_delta,
-                '1-Week Delta (%)': results.ow_delta,
-                '1-Month Delta (%)': results.om_delta,
-                '3-Month Delta (%)': results.tm_delta,
-                '6-Month Delta (%)': results.sm_delta,
-                '1-Year Delta (%)': results.oy_delta,
-                'Range Asym - Buy (%)': results.ra_buy,
-                'Range Asym - Sell (%)': results.ra_sell
-            })              
+            {'Date': r.date,
+                'Ticker': r.ticker,
+                'Description': r.description,
+                'Buy': r.buy,
+                'Sell': r.sell,
+                'Close': r.close,
+                'W/W Delta': r.delta_ww,
+                '1-Day Delta (%)': r.od_delta,
+                '1-Week Delta (%)': r.ow_delta,
+                '1-Month Delta (%)': r.om_delta,
+                '3-Month Delta (%)': r.tm_delta,
+                '6-Month Delta (%)': r.sm_delta,
+                '1-Year Delta (%)': r.oy_delta,
+                'Range Asym - Buy (%)': r.ra_buy,
+                'Range Asym - Sell (%)': r.ra_sell
+            })
+        
+        if r.ticker == 'UST10Y':
+            tens_close = r.close
+        elif r.ticker == 'UST2Y':
+            twos_close = r.close
+    
+    if len(results) > 1:
+        data.append({'10s/2s Spread (bps)': round((tens_close - twos_close) * 100, 2)})             
     
     return data
 

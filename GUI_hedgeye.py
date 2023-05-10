@@ -61,13 +61,6 @@ class HedgeyePage(ctk.CTkFrame):
         self.progress_bar.grid(row=2, column=0, columnspan=10, padx=10, sticky='ew')
         self.progress_bar.start()
         
-    
-    # def openSettings(self):
-    #     """
-    #     Displays settings widget. Will self close if a change is made.
-    #     """
-    #     Settings(self.master)
-        
         
     def reloadPage(self, target_date=None, target_tick=None):
         """

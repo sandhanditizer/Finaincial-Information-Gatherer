@@ -17,15 +17,15 @@ def compute_delta_ww(date, ticker, today_buy, today_sell):
     
     date_obj = datetime.strptime(date, '%Y-%m-%d')
     
-    for i in range(7, 50):
+    for i in range(7, 30):
         new_date_obj = date_obj - timedelta(days=i)
         new_date = new_date_obj.strftime('%Y-%m-%d')
         old_data = Hedgeye.getData(date=new_date, ticker=ticker)
         
-        if old_data:
-            return round((today_buy - today_sell) - (old_data.buy - old_data.sell), 2)
+        if old_data != []:
+            return round((today_buy - today_sell) - (old_data[0].buy - old_data[0].sell), 2)
         
-        if old_data == None and i == 49:
+        if old_data == [] and i == 29:
             return None
     
         
@@ -43,19 +43,19 @@ def compute_od_delta(date, ticker, close):
     
     date_obj = datetime.strptime(date, '%Y-%m-%d')
     
-    for i in range(1, 50):
+    for i in range(1, 30):
         new_date_obj = date_obj - timedelta(days=i)
         new_date = new_date_obj.strftime('%Y-%m-%d')
         old_data = Hedgeye.getData(date=new_date, ticker=ticker)
         
-        if old_data and old_data.close != 0:
-            return round(((close - old_data.close) / old_data.close) * 100, 2)
-        
-        if old_data and old_data.close == 0:
-            raise ZeroDivisionError('Close value is 0. Cannot complete 1-Day Delta calculation.\n')
-        
-        if old_data == None and i == 49: 
+        if old_data == [] and i == 29:
             return None
+        
+        if old_data != [] and old_data[0].close != 0:
+            return round(((close - old_data[0].close) / old_data[0].close) * 100, 2)
+        
+        if old_data != [] and old_data[0].close == 0:
+            raise ZeroDivisionError('Close value is 0. Cannot complete 1-Day Delta calculation.')
        
         
 def compute_ow_delta(date, ticker, close):
@@ -72,19 +72,19 @@ def compute_ow_delta(date, ticker, close):
     
     date_obj = datetime.strptime(date, '%Y-%m-%d')
     
-    for i in range(7, 50):
+    for i in range(7, 30):
         new_date_obj = date_obj - timedelta(days=i)
         new_date = new_date_obj.strftime('%Y-%m-%d')
         old_data = Hedgeye.getData(date=new_date, ticker=ticker)
         
-        if old_data and old_data.close != 0:
-            return round(((close - old_data.close) / old_data.close) * 100, 2)
-        
-        if old_data and old_data.close == 0:
-            raise ZeroDivisionError('Close value is 0. Cannot complete 1-Week Delta calculation.\n')
-        
-        if old_data == None and i == 49:
+        if old_data == [] and i == 29:
             return None
+        
+        if old_data != [] and old_data[0].close != 0:
+            return round(((close - old_data[0].close) / old_data[0].close) * 100, 2)
+        
+        if old_data != [] and old_data[0].close == 0:
+            raise ZeroDivisionError('Close value is 0. Cannot complete 1-Week Delta calculation.')
         
         
 def compute_om_delta(date, ticker, close):
@@ -106,14 +106,14 @@ def compute_om_delta(date, ticker, close):
         new_date = new_date_obj.strftime('%Y-%m-%d')
         old_data = Hedgeye.getData(date=new_date, ticker=ticker)
         
-        if old_data and old_data.close != 0:
-            return round(((close - old_data.close) / old_data.close) * 100, 2)
-        
-        if old_data and old_data.close == 0:
-            raise ZeroDivisionError('Close value is 0. Cannot complete 1-Month Delta calculation.\n')
-        
-        if old_data == None and i == 49:
+        if old_data == [] and i == 49:
             return None
+        
+        if old_data != [] and old_data[0].close != 0:
+            return round(((close - old_data[0].close) / old_data[0].close) * 100, 2)
+        
+        if old_data != [] and old_data[0].close == 0:
+            raise ZeroDivisionError('Close value is 0. Cannot complete 1-Month Delta calculation.')
         
 
 def compute_tm_delta(date, ticker, close):
@@ -130,19 +130,19 @@ def compute_tm_delta(date, ticker, close):
     
     date_obj = datetime.strptime(date, '%Y-%m-%d')
     
-    for i in range(90, 150):
+    for i in range(90, 120):
         new_date_obj = date_obj - timedelta(days=i)
         new_date = new_date_obj.strftime('%Y-%m-%d')
         old_data = Hedgeye.getData(date=new_date, ticker=ticker)
         
-        if old_data and old_data.close != 0:
-            return round(((close - old_data.close) / old_data.close) * 100, 2)
-        
-        if old_data and old_data.close == 0:
-            raise ZeroDivisionError('Close value is 0. Cannot complete 3-Month Delta calculation.\n')
-        
-        if old_data == None and i == 149:
+        if old_data == [] and i == 119:
             return None
+        
+        if old_data != [] and old_data[0].close != 0:
+            return round(((close - old_data[0].close) / old_data[0].close) * 100, 2)
+        
+        if old_data != [] and old_data[0].close == 0:
+            raise ZeroDivisionError('Close value is 0. Cannot complete 3-Month Delta calculation.')
         
         
 def compute_sm_delta(date, ticker, close):
@@ -159,19 +159,19 @@ def compute_sm_delta(date, ticker, close):
     
     date_obj = datetime.strptime(date, '%Y-%m-%d')
     
-    for i in range(180, 250):
+    for i in range(180, 210):
         new_date_obj = date_obj - timedelta(days=i)
         new_date = new_date_obj.strftime('%Y-%m-%d')
         old_data = Hedgeye.getData(date=new_date, ticker=ticker)
         
-        if old_data and old_data.close != 0:
-            return round(((close - old_data.close) / old_data.close) * 100, 2)
-        
-        if old_data and old_data.close == 0:
-            raise ZeroDivisionError('Close value is 0. Cannot complete 6-Month Delta calculation.\n')
-        
-        if old_data == None and i == 249:
+        if old_data == [] and i == 209:
             return None
+        
+        if old_data != [] and old_data[0].close != 0:
+            return round(((close - old_data[0].close) / old_data[0].close) * 100, 2)
+        
+        if old_data != [] and old_data[0].close == 0:
+            raise ZeroDivisionError('Close value is 0. Cannot complete 6-Month Delta calculation.')
         
 
 def compute_oy_delta(date, ticker, close):
@@ -193,14 +193,14 @@ def compute_oy_delta(date, ticker, close):
         new_date = new_date_obj.strftime('%Y-%m-%d')
         old_data = Hedgeye.getData(date=new_date, ticker=ticker)
         
-        if old_data and old_data.close != 0:
-            return round(((close - old_data.close) / old_data.close) * 100, 2)
-        
-        if old_data and old_data.close == 0:
-            raise ZeroDivisionError('Close value is 0. Cannot complete 1-Year Delta calculation.\n')
-        
-        if old_data == None and i == 399:
+        if old_data == [] and i == 399:
             return None
+        
+        if old_data != [] and old_data[0].close != 0:
+            return round(((close - old_data[0].close) / old_data[0].close) * 100, 2)
+        
+        if old_data != [] and old_data[0].close == 0:
+            raise ZeroDivisionError('Close value is 0. Cannot complete 1-Year Delta calculation.')
         
 
 def compute_ra_buy(buy, close):
@@ -214,7 +214,7 @@ def compute_ra_buy(buy, close):
     """
     
     if close == 0:
-        raise ZeroDivisionError('Close value is 0. Cannot complete Range Asymmetry Buy calculation.\n')
+        raise ZeroDivisionError('Close value is 0. Cannot complete Range Asymmetry Buy calculation.')
     
     return round(((buy - close) / close) * 100, 2)
 
@@ -230,7 +230,7 @@ def compute_ra_sell(sell, close):
     """
     
     if close == 0:
-        raise ZeroDivisionError('Close value is 0. Cannot complete Range Asymmetry Sell calculation.\n')
+        raise ZeroDivisionError('Close value is 0. Cannot complete Range Asymmetry Sell calculation.')
     
     return round(((sell - close) / close) * 100, 2)
         
@@ -277,5 +277,4 @@ def add_row(date, ticker, description, buy, sell, close):
     rab = compute_ra_buy(buy, close)
     ras = compute_ra_sell(sell, close)
     
-    Hedgeye.writeData(date, ticker, description, buy, sell, close, weekweek, oneday, 
-                    oneweek, onemonth, threemonth, sixmonth, oneyear, rab, ras)
+    Hedgeye.writeData(date, ticker, description, buy, sell, close, weekweek, oneday, oneweek, onemonth, threemonth, sixmonth, oneyear, rab, ras)
