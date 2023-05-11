@@ -3,7 +3,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-from DataCollection.format import clean, extract, formatDate
+from DataCollection.format import cleanData, reformatData, reformatDate
 import json
 
 
@@ -93,12 +93,12 @@ class HedgeyeWebController:
             logged_in_driver.quit()
             
         try:
-            data = extract(rrs_table) # Formats data returns a list of dictionaries
+            data = reformatData(rrs_table) # Formats data returns a list of dictionaries
         except:
             return "Cannot properly extract Hedgeye's table data. Contact your son for support."
         
         try:
-            formated_date = formatDate(date)
+            formated_date = reformatDate(date)
         except:
             return "Cannot properly format Hedgeye's date data. Contact your son for support."
             
@@ -128,7 +128,7 @@ class CompositesWebController:
             wait_driver = self._createWaitDriver(self._driver)
 
             date = wait_driver.until(EC.visibility_of_element_located((By.XPATH, '//*[@id="root"]/div/div/div/div[2]/div/div/div[2]/div[1]/h3/span[2]'))).get_attribute('textContent')
-            self._data['Date'] = formatDate(date)
+            self._data['Date'] = reformatDate(date)
             
             self._data['NYSE Advancing Volume'] = wait_driver.until(EC.visibility_of_element_located((By.XPATH, '//*[@id="root"]/div/div/div/div[2]/div/div/div[2]/table/tbody[1]/tr[12]/td[2]'))).get_attribute('textContent')
             self._data['NYSE Declining Volume'] = wait_driver.until(EC.visibility_of_element_located((By.XPATH, '//*[@id="root"]/div/div/div/div[2]/div/div/div[2]/table/tbody[1]/tr[13]/td[2]'))).get_attribute('textContent')
@@ -160,7 +160,7 @@ class CompositesWebController:
             while row != 4: # Search for the correct close data given the date from the WSJ market diaries page
                 xpath = f'//*[@id="Col1-1-HistoricalDataTable-Proxy"]/section/div[2]/table/tbody/tr[{row}]/td[1]/span'
                 date = wait_driver.until(EC.visibility_of_element_located((By.XPATH, xpath))).get_attribute('textContent')
-                if formatDate(date) != self._data['Date']:
+                if reformatDate(date) != self._data['Date']:
                     row += 1
                 else:
                     break
@@ -184,7 +184,7 @@ class CompositesWebController:
             while row != 4: # Search for the correct close data given the date from the WSJ market diaries page
                 xpath = f'//*[@id="Col1-1-HistoricalDataTable-Proxy"]/section/div[2]/table/tbody/tr[{row}]/td[1]/span'
                 date = wait_driver.until(EC.visibility_of_element_located((By.XPATH, xpath))).get_attribute('textContent')
-                if formatDate(date) != self._data['Date']:
+                if reformatDate(date) != self._data['Date']:
                     row += 1
                 else:
                     break
@@ -212,7 +212,7 @@ class CompositesWebController:
             return ans2
         
         try:
-            formated_data = clean(self._data) # Formats data how I want it
+            formated_data = cleanData(self._data) # Formats data how I want it
         except:
             return 'Cannot properly clean Market Diary and Yahoo data. Contact your son for support.'
             
