@@ -1,4 +1,4 @@
-from DataCollection.websiteControllers import HedgeyeWebController, CompositesWebController
+from DataCollection.websiteControllers import fetchHedgeyeData, fetchCompositeData
 from DBControls.hedgeyePrep import add_row as addHedgeyeRow
 from DBControls.compositePrep import add_row as addCompositeRow
 from DBControls.dbReadWrite import Hedgeye, NASDAQ, NYSE
@@ -8,57 +8,54 @@ from tzlocal import get_localzone
 from datetime import datetime, timedelta
 import json
 
-
-# ------------------------------------------------------------------------------
-# Functions called while starting up the app or pressing the `Reload` button
+# Functions below are the middle man between the backend and the app
 
 def updateHedgeyeTable():
     """
     Grabs data from Hedgeye's website and stores new data in the database.\n
     Returns:\n
-        str: Error.\n
-        0: If success
+        str: If failure, error message.\n
+        0: If success.
     """
-    data = HedgeyeWebController().scrapeData()
-    
+    data = fetchHedgeyeData()
     if type(data) == str:
-        return data # Error
-    else:
-        try:
-            date = data.pop() # Removes date information
-            for d in data:
-                addHedgeyeRow(date=date, ticker=d['Ticker'], description=d['Description'], buy=d['Buy'], sell=d['Sell'], close=d['Close'])
-        except:
-            return 'Cannot load newest Hedgeye data into database.'
+        return data # Error message
+
+    try:
+        for stock in data[1]:
+            addHedgeyeRow(date=data[0], 
+                          ticker=stock['Ticker'], 
+                          description=stock['Description'], 
+                          buy=stock['Buy'], 
+                          sell=stock['Sell'], 
+                          close=stock['Close'])
+    except:
+        return 'Cannot load newest Hedgeye data into database.'
         
     return 0 # Successful
         
             
-def updateNasdaqNyseTables():
+def updateCompositeTables():
     """
     Grabs data from the Wallstreet Journal Market Diaries and Yahoo websites and stores new data in the database.\n
     Returns:\n
-        str: Error.\n
-        0: If success
+        str: If failure, error message.\n
+        0: If success.
     """
-    data = CompositesWebController().scrapeData()
-    
+    data = fetchCompositeData()
     if type(data) == str:
-        return data # Error
-    else:
-        try:
-            date = data['Date']
-            addCompositeRow(NASDAQ, date=date, 
-                    advancing_V=data['NASDAQ Advancing Volume'], declining_V=data['NASDAQ Declining Volume'], total_V=data['NASDAQ Total Volume'], 
-                    close=data['NASDAQ Close'], advances=data['NASDAQ Advances'], declines=data['NASDAQ Declines'], 
-                    new_highs=data['NASDAQ New Highs'], new_lows=data['NASDAQ New Lows'])
-                
-            addCompositeRow(NYSE, date=date, 
-                    advancing_V=data['NYSE Advancing Volume'], declining_V=data['NYSE Declining Volume'], total_V=data['NYSE Total Volume'], 
-                    close=data['NYSE Close'], advances=data['NYSE Advances'], declines=data['NYSE Declines'], 
-                    new_highs=data['NYSE New Highs'], new_lows=data['NYSE New Lows'])
-        except:
-            return 'Cannot load newest NYSE or NASDAQ data into database.'
+        return data # Error message
+    
+    try:
+        addCompositeRow(NASDAQ, date=data['Date'], advancing_V=data['NASDAQ Advancing Volume'], declining_V=data['NASDAQ Declining Volume'], 
+                        total_V=data['NASDAQ Total Volume'], close=data['NASDAQ Close'], advances=data['NASDAQ Advances'], 
+                        declines=data['NASDAQ Declines'], new_highs=data['NASDAQ New Highs'], new_lows=data['NASDAQ New Lows'])
+            
+        addCompositeRow(NYSE, date=data['Date'], advancing_V=data['NYSE Advancing Volume'], declining_V=data['NYSE Declining Volume'], 
+                        total_V=data['NYSE Total Volume'], close=data['NYSE Close'], advances=data['NYSE Advances'], 
+                        declines=data['NYSE Declines'], new_highs=data['NYSE New Highs'], new_lows=data['NYSE New Lows'])
+    except:
+        return 'Cannot load newest NASDAQ or NYSE data into database.'
         
     return 0 # Successful
 
@@ -70,11 +67,11 @@ class ThreadUpdate(Thread):
         self._result = None
         
     def run(self):
-        """Runs thread.\n"""
+        """Runs thread."""
         self._result = self._target()
         
     def result(self):
-        """Returns result from threaded function.\n"""
+        """Returns result from threaded function."""
         return self._result
         
         
@@ -90,12 +87,16 @@ def connectedToWiFi():
     except OSError:
         return False
     
+    
+# ------------------------------------------------------------------------------
+# Functions called while interacting with the pages
+    
 
 def updateDatabase():
     """
     Requests data from websites and handles errors for backend side.\n
     Returns:\n
-        list: If [0,0] total success, if either 0 is a message then that message is an error that will be displayed.
+        list: If [0,0], then total success. Else, it will be a list of error messages.
     """
     current_time = datetime.now(get_localzone()) # Gets the time of where the computer is
     todays_date = datetime.strftime(current_time.date(), '%Y-%m-%d')
@@ -114,7 +115,7 @@ def updateDatabase():
         j1 = True
 
     if NASDAQ.getData(date=yesterdays_date) == None or (current_time.hour > 16 and NASDAQ.getData(date=todays_date) == None):
-        thread2 = ThreadUpdate(target=updateNasdaqNyseTables)
+        thread2 = ThreadUpdate(target=updateCompositeTables)
         thread2.start()
         j2 = True
 
@@ -130,9 +131,6 @@ def updateDatabase():
         return [0, thread2.result()]   
     else:
         return [0, 0]
-
-# ------------------------------------------------------------------------------
-# Functions called while interacting with the pages
 
     
 def summonHedgeyeData(date=None, ticker=None, all_dates=False):
@@ -198,7 +196,6 @@ def summonNasdaqData(date=None, all_dates=False):
         return NASDAQ.getAllDates()
 
     results = NASDAQ.getData(date=date)
-    
     if results:
         return {
             'Date': results.date,
@@ -224,8 +221,7 @@ def summonNasdaqData(date=None, all_dates=False):
             '21-Day Average (Highs/Lows)': results.tod_avg,
             '63-Day Average (Highs/Lows)': results.std_avg
         }
-    else:
-        return results # Error
+    return results # None
     
 
 def summonNyseData(date=None, all_dates=False):
@@ -242,7 +238,6 @@ def summonNyseData(date=None, all_dates=False):
         return NYSE.getAllDates()
         
     results = NYSE.getData(date=date)
-    
     if results:
         return {
             'Date': results.date,
@@ -268,8 +263,7 @@ def summonNyseData(date=None, all_dates=False):
             '21-Day Average (Highs/Lows)': results.tod_avg,
             '63-Day Average (Highs/Lows)': results.std_avg
         }
-    else:
-        return results # Error
+    return results # None
     
     
 def getCredentials():

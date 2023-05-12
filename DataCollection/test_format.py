@@ -55,7 +55,7 @@ class TestReformatData(unittest.TestCase):
         """Parses data out of raw website data."""
         data = """\n\n\nINDEX\nBUY TRADE\nSELL TRADE\nPREV. CLOSE\n\n\n\n\n\nUST30Y (BULLISH)\n\n30-Year U.S. Treasury Yield\n\n3.96\n3.67\n3.88\n\n\n\nUST10Y (BULLISH)\n\n10-Year U.S. Treasury Yield\n\n3.90\n3.57\n3.82\n\n\n"""
         extracted_data = reformatData(data)
-        self.assertEqual(extracted_data, [{'Ticker': 'UST10Y', 'Description': '10-YEAR U.S. TREASURY YIELD', 'Buy': 3.9, 'Sell': 3.57, 'Close': 3.82}, {'Ticker': 'UST30Y', 'Description': '30-YEAR U.S. TREASURY YIELD', 'Buy': 3.96, 'Sell': 3.67, 'Close': 3.88}])
+        self.assertListEqual(extracted_data, [{'Ticker': 'UST30Y', 'Description': '30-YEAR U.S. TREASURY YIELD', 'Buy': 3.96, 'Sell': 3.67, 'Close': 3.88}, {'Ticker': 'UST10Y', 'Description': '10-YEAR U.S. TREASURY YIELD', 'Buy': 3.9, 'Sell': 3.57, 'Close': 3.82}])
         
 
 class TestClean(unittest.TestCase):
@@ -69,7 +69,7 @@ class TestClean(unittest.TestCase):
                 }
         
         result = cleanData(data)
-        self.assertEqual(result, {'test': 0.34, 
+        self.assertDictEqual(result, {'test': 0.34, 
                                   'test2': 23.45, 
                                   'test3': 124934342454.0, 
                                   'test4': -304.23,

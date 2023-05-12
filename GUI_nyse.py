@@ -16,7 +16,7 @@ class NYSEPage(ctk.CTkFrame):
         self.dates = summonNyseData(all_dates=True)
         self.dates.reverse()
         
-        page_title = ctk.CTkLabel(self, text='Power Play Results', font=(None, 40, 'bold'))
+        page_title = ctk.CTkLabel(self, text='Power Play Results', font=ctk.CTkFont(size=35, weight='bold', slant='italic'))
         page_title.grid(row=0, column=0, columnspan=3, padx=10, pady=20,  sticky='w')
         
         button1 = ctk.CTkButton(self, text='Reload Data', command=self.reloadThread)
@@ -103,7 +103,7 @@ class NYSEPage(ctk.CTkFrame):
         initcol = 0
         
         # Table label
-        self.table_lable = ctk.CTkEntry(self, justify='center', height=40, font=(None, 20))
+        self.table_lable = ctk.CTkEntry(self, justify='center', height=40, font=ctk.CTkFont(size=20))
         self.table_lable.grid(row=(initrow - 1), column=initcol, columnspan=4, padx=10, pady=10, sticky='ew')
         self.table_lable.insert(ctk.END, 'Volumetric Data') 
           
@@ -126,14 +126,14 @@ class NYSEPage(ctk.CTkFrame):
             row_color2 = '#4B4B4B'
             text_color = 'white'
             highlight_color = '#476D7C'
-            style.configure('my.Treeview', rowheight=53, font=(None, 13), fieldbackground=background_color)
+            style.configure('my.Treeview', rowheight=53, font=ctk.CTkFont(size=13), fieldbackground=background_color)
         else:
             background_color = '#E5E5E5'
             row_color = '#F7F7F7'
             row_color2 = '#D3D3D3'
             text_color = 'black'
             highlight_color = '#476D7C'
-            style.configure('my.Treeview', rowheight=53, font=(None, 13), fieldbackground=background_color)
+            style.configure('my.Treeview', rowheight=53, font=ctk.CTkFont(size=13), fieldbackground=background_color)
         
         style.map('my.Treeview', background=[('selected', highlight_color)], foreground=[('selected', 'white')])
         

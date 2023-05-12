@@ -23,7 +23,7 @@ class HedgeyePage(ctk.CTkFrame):
         self.dates.reverse()
         
         # Page specifier
-        page_title = ctk.CTkLabel(self, text="Daily Data", font=(None, 40, 'bold'))
+        page_title = ctk.CTkLabel(self, text="Daily Data", font=ctk.CTkFont(size=40, weight='bold', slant='italic'))
         page_title.grid(row=0, column=0, columnspan=2, padx=10, pady=20,  sticky='w')
         
         # Reload data button
@@ -132,7 +132,7 @@ class HedgeyePage(ctk.CTkFrame):
             ticker_choice (str, optional): Ticker that was clicked on by user. Defaults to None.
         """
         # Description to the right of ticker dropdown
-        description_lable = ctk.CTkLabel(self, text=description, anchor='center')
+        description_lable = ctk.CTkLabel(self, text=description, anchor='n', font=ctk.CTkFont(weight='bold'))
         description_lable.grid(row=1, column=5, columnspan=4, padx=10, pady=10, sticky='ew')
         
         # Ticker dropdown box
@@ -159,9 +159,9 @@ class HedgeyePage(ctk.CTkFrame):
         initcol = 6
         
         # Table label   
-        self.table_lable = ctk.CTkEntry(self, justify='center', height=50, font=(None, 20))
+        self.table_lable = ctk.CTkEntry(self, justify='center', height=50, font=ctk.CTkFont(size=20))
         self.table_lable.grid(row=(initrow - 1), column=initcol, columnspan=3, pady=10, sticky='ew')
-        self.table_lable.insert(ctk.END, 'Range and Performance Data') 
+        self.table_lable.insert(ctk.END, 'Range and Performance Metrics') 
           
         labels = ['Buy', 'Sell', 'Close', 'Range Asym - Buy (%)', 'Range Asym - Sell (%)', 'W/W Delta', 
                   '1-Day Delta (%)', '1-Week Delta (%)', '1-Month Delta (%)', '3-Month Delta (%)',
@@ -175,14 +175,14 @@ class HedgeyePage(ctk.CTkFrame):
             row_color2 = '#4B4B4B'
             text_color = 'white'
             highlight_color = '#304a54'
-            style.configure('my.Treeview', rowheight=53, font=(None, 13), fieldbackground=background_color)
+            style.configure('my.Treeview', rowheight=53, font=ctk.CTkFont(size=13), fieldbackground=background_color)
         else:
             background_color = '#E5E5E5'
             row_color = '#F7F7F7'
             row_color2 = '#D3D3D3'
             text_color = 'black'
             highlight_color = '#476D7C'
-            style.configure('my.Treeview', rowheight=53, font=(None, 13), fieldbackground=background_color)
+            style.configure('my.Treeview', rowheight=53, font=ctk.CTkFont(size=13), fieldbackground=background_color)
             
         # Color change when clicking on the table
         style.map('my.Treeview', background=[('selected', highlight_color)], foreground=[('selected', 'white')])
@@ -225,9 +225,9 @@ class HedgeyePage(ctk.CTkFrame):
         initcol = 0
                 
         # Graph label
-        self.graph_lable = ctk.CTkEntry(self, justify='right', height=50, font=(None, 20))
+        self.graph_lable = ctk.CTkEntry(self, justify='right', height=50, font=ctk.CTkFont(size=20))
         self.graph_lable.grid(row=(initrow - 1), column=initcol, columnspan=6, padx=10, sticky='ew')
-        self.graph_lable.insert(ctk.END, 'Trade Price View                 ')    
+        self.graph_lable.insert(ctk.END, 'Trade Price Viewer             ')    
         
         # Setting color scheme based on color mode of computer
         if self._get_appearance_mode() == 'dark':
@@ -364,4 +364,4 @@ class CustomToolbar(NavigationToolbar2Tk):
             thing.config(background=color)
         
         self.config(background=color)
-        self._message_label.config(foreground=fcolor, background=color, font=(None, 16))
+        self._message_label.config(foreground=fcolor, background=color, font=ctk.CTkFont(size=16))
