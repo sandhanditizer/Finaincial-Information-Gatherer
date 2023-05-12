@@ -18,7 +18,7 @@ class NASDAQPage(ctk.CTkFrame):
         self.dates.reverse()
         
         # Page specifier
-        page_title = ctk.CTkLabel(self, text='Power Play Results', font=ctk.CTkFont(size=35, weight='bold', slant='italic'))
+        page_title = ctk.CTkLabel(self, text='Power Play Results', font=ctk.CTkFont(size=35, weight='bold'))
         page_title.grid(row=0, column=0, columnspan=3, padx=10, pady=20,  sticky='w')
         
         # Reload data button

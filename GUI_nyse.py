@@ -16,7 +16,7 @@ class NYSEPage(ctk.CTkFrame):
         self.dates = summonNyseData(all_dates=True)
         self.dates.reverse()
         
-        page_title = ctk.CTkLabel(self, text='Power Play Results', font=ctk.CTkFont(size=35, weight='bold', slant='italic'))
+        page_title = ctk.CTkLabel(self, text='Power Play Results', font=ctk.CTkFont(size=35, weight='bold'))
         page_title.grid(row=0, column=0, columnspan=3, padx=10, pady=20,  sticky='w')
         
         button1 = ctk.CTkButton(self, text='Reload Data', command=self.reloadThread)

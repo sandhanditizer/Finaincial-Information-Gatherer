@@ -23,7 +23,7 @@ class HedgeyePage(ctk.CTkFrame):
         self.dates.reverse()
         
         # Page specifier
-        page_title = ctk.CTkLabel(self, text="Daily Data", font=ctk.CTkFont(size=40, weight='bold', slant='italic'))
+        page_title = ctk.CTkLabel(self, text="Daily Data", font=ctk.CTkFont(size=40, weight='bold'))
         page_title.grid(row=0, column=0, columnspan=2, padx=10, pady=20,  sticky='w')
         
         # Reload data button

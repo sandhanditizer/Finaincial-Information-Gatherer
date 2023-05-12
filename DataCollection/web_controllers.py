@@ -73,7 +73,7 @@ def login():
     
     if driver.current_url != RISK_RANGE_SIGNALS_URL:
         driver.quit()
-        return "Cannot log into Hedgeye's website. Go into settings and make sure your username and password is correct."
+        return "Cannot log into Hedgeye's website. Go into settings and make sure that your username and password are correct."
 
     return driver
 

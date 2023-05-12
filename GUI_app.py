@@ -6,8 +6,8 @@ from GUI_nyse import NYSEPage
 from GUI_load import LoadingPage
 from GUI_popup import Popup
 from interface import updateDatabase
-import customtkinter as ctk
 from threading import Thread
+import customtkinter as ctk
 
 
 ctk.set_appearance_mode('system')
@@ -99,7 +99,7 @@ class MainApp(ctk.CTk):
             for message in result:
                 if type(message) == str:
                     popup.showWarning(message)
-            popup.showInfo('To try again, press `Reload` to get updated information.')
+            popup.showInfo('To retry updating information, press the `Reload` button.')
 
         self.loading_page.destroy()
         self.showPage(page)

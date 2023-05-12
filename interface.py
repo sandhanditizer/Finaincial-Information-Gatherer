@@ -1,7 +1,7 @@
-from DataCollection.websiteControllers import fetchHedgeyeData, fetchCompositeData
-from DBControls.hedgeyePrep import add_row as addHedgeyeRow
-from DBControls.compositePrep import add_row as addCompositeRow
-from DBControls.dbReadWrite import Hedgeye, NASDAQ, NYSE
+from DataCollection.web_controllers import fetchHedgeyeData, fetchCompositeData
+from DBControls.hedgeye_metrics import add_row as addHedgeyeRow
+from DBControls.composite_metrics import add_row as addCompositeRow
+from DBControls.db_read_write import Hedgeye, NASDAQ, NYSE
 from socket import create_connection
 from threading import Thread
 from tzlocal import get_localzone
