@@ -10,11 +10,11 @@ class Settings(ctk.CTkToplevel):
         self.title('Settings')
         
         self.button1 = ctk.CTkButton(self, text='Change Username', command=self.changeUsername)
-        self.button1.grid(row=0, column=0, padx=10, pady=10, sticky='nsew')
+        self.button1.grid(row=0, column=0, padx=10, pady=(20, 10), sticky='ew')
         
         self.button2 = ctk.CTkButton(self, text='Change Password', command=self.changePassword)
-        self.button2.grid(row=0, column=1, padx=10, pady=10, sticky='nsew')
-        
+        self.button2.grid(row=0, column=1, padx=10, pady=(20, 10), sticky='ew')
+    
         self.button3 = ctk.CTkButton(self, text='App Info', command=self.showInfo, width=70)
         self.button3.grid(row=1, column=0, columnspan=2, padx=10, pady=10)
         

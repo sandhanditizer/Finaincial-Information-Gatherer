@@ -2,11 +2,9 @@ Hello Father!
 
 In here you will find information about the app including functionality information, limitations, and other things that I think you should know.
 
+
 ---Hedgeye Page Information---
 Hedgeye typically comes out with new daily data at around 8 AM EDT or 7 AM CT time. So to get new information just run the app or press `Reload Data` after 7 AM CT.
-
-    `Reload Data` (button): 
-When pressed, this button will check if the data for the Hedgeye, NASDAQ, and NYSE pages are up-to-date. If not, it will make a web request to get updated data. If it successfully gets the new data, then all pages will reload automatically with up-to-date information. During the web requests you will see a progress bar to show you the app is still thinking.
 
     `Goto ****` (buttons): 
 When pressed, these buttons will take you to that respective page. Just like switching spreadsheets on Excel.
@@ -23,11 +21,18 @@ This series of buttons will show the y-axis grid lines. You can choose to not sh
     `Settings` (button): 
 In this settings popup, you can change your username and/or password for the Hedgeye website. If you change your username/password on the website itself, make sure to change the username/password on the app so that way it can properly log-in before getting new data.
 
+    `Backlog Data` (Button):
+If you were to ever miss opening this app, and thus miss collecting Hedgeye trading data for that day, you can backlog data by... going to https://app.hedgeye.com/feed_items/all?page=1&with_category=33-risk-range-signals, scrolling to the bottom, click on where it says "VIEW MORE RISK RANGE SIGNALS", choose what day you missed, copying the URL of that day's risk range page, going back to this app, click on "Backlog Data", paste the URL in the given field, press Ok. This will collect all the data for that specific day given that URL.
+
+    `Reload Data` (button): 
+When pressed, this button will check if the data for the Hedgeye, NASDAQ, and NYSE pages are up-to-date. If not, it will make a web request to get updated data. If it successfully gets the new data, then all pages will reload automatically with up-to-date information. During the web requests you will see a progress bar to show you the app is still thinking.
+
     Notes about the graph:
 This graph is interactive, meaning you can reset the original view (home), move back to the previous view (back arrow), move forward to the next view (forward arrow), pan around (cross), zoom to rectangles (magnifying glass), configure graph sizing (sliders), and save the current view (save icon). Clicking the home button will undo any changes made to the graph. If you made any change to the graph, clicking the back arrow will show you the previous view. If you moved back a view using the back arrow, clicking the forwards arrow will show you the view you were on. Clicking the pan button allows you to click and drag around the graph. This is useful if you are zoomed in on a particular spot. To zoom, click the zoom button and draw a rectangle around the area you want to zoom by clicking, holding, and dragging using your mouse. Clicking the save button will show you a popup of where you want to save that current graph view. 
 
     Notes about the table:
 This table is interactive, meaning it is clickable and scrollable.
+
 
 
 ---NASDAQ and NYSE Page Information---

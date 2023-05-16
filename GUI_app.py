@@ -26,7 +26,9 @@ class MainApp(ctk.CTk):
         self.loading_page.grid(row=0, column=0, sticky='nsew')
         
         # After scrapping data, the Hedgeye page will be the first page shown
-        thread = Thread(target=self.initiateWebScrape, args=('Hedgeye',))
+        thread = Thread(target=self.initiateWebScrape, args=(
+            'Hedgeye', 
+            'https://app.hedgeye.com/feed_items/all?page=1&with_category=33-risk-range-signals',))
         thread.start()
     
     
@@ -70,17 +72,18 @@ class MainApp(ctk.CTk):
         self.pages[requested_page][0].grid(row=0, column=0, sticky='nsew')
 
 
-    def initiateWebScrape(self, page):
+    def initiateWebScrape(self, page, hedgeye_url):
         """
         Master function that grabs new information. Each page's `Reload` button calls this function.
         The page name that is passed in as a argument is the page that is shown after scrapping web data.\n
         Args:\n
-            page (str): Dictionary key of pages ('Hedgeye', 'NASDAQ', 'NYSE').
+            page (str): Dictionary key of pages ('Hedgeye', 'NASDAQ', 'NYSE').\n
+            hedgeye_url (str): Risk range signals URL of either a specified date or the newest date.
         """
         popup = Popup(self)
         
         try:
-            result = updateDatabase()
+            result = updateDatabase(hedgeye_url)
         except:
             popup.showError('A backend error occured. Contact your son for support.')
             self.loading_page.destroy()
@@ -99,7 +102,6 @@ class MainApp(ctk.CTk):
             for message in result:
                 if type(message) == str:
                     popup.showWarning(message)
-            popup.showInfo('To retry updating information, press the `Reload` button.')
 
         self.loading_page.destroy()
         self.showPage(page)

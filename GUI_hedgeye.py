@@ -29,7 +29,15 @@ class HedgeyePage(ctk.CTkFrame):
         
         # Reload data button
         button1 = ctk.CTkButton(self, text='Reload Data', command=self.reloadThread)
-        button1.grid(row=1, column=0, padx=10, pady=10, sticky='ew')
+        button1.grid(row=0, column=6, padx=10, pady=10, sticky='ew')
+        
+        # Backlog data
+        button4 = ctk.CTkButton(self, text='Backlog Data', command=self.backLog)
+        button4.grid(row=0, column=8, padx=10, pady=10, sticky='ew')
+
+        # Open settings
+        button5 = ctk.CTkButton(self, text='Settings', command=lambda: Settings(self.master))
+        button5.grid(row=1, column=0, padx=10, pady=10, sticky='ew')
         
         # Redirection buttons
         button2 = ctk.CTkButton(self, text='Goto NASDAQ', command=lambda: self.master.showPage('NASDAQ'))
@@ -38,29 +46,42 @@ class HedgeyePage(ctk.CTkFrame):
         button3 = ctk.CTkButton(self, text='Goto NYSE', command=lambda: self.master.showPage('NYSE'))
         button3.grid(row=1, column=2, padx=10, pady=10, sticky='ew')
         
-        # Open settings
-        button4 = ctk.CTkButton(self, text='Settings', command=lambda: Settings(self.master), width=160)
-        button4.grid(row=0, column=8, padx=10, pady=10, sticky='e')
+        # Graph label
+        self.graph_lable = ctk.CTkEntry(self, justify='right', height=50, font=ctk.CTkFont(size=20))
+        self.graph_lable.grid(row=3, column=0, columnspan=6, padx=10, sticky='ew')
+        
+        # Table label   
+        self.table_lable = ctk.CTkEntry(self, justify='center', height=50, font=ctk.CTkFont(size=20))
+        self.table_lable.grid(row=3, column=6, columnspan=3, pady=10, sticky='ew')
+        self.table_lable.insert(ctk.END, 'Range and Performance Metrics') 
         
         # Month separator       
         self.grid_split_seg_buttons = ctk.CTkSegmentedButton(self, values=['No Y-Grid', 'M', '3M', '6M', '1Y'], 
                                                              command=lambda value: self.drawGraph(self.master.pages['Hedgeye'][2]))
         self.grid_split_seg_buttons.set('No Y-Grid')
-        self.grid_split_seg_buttons.grid(row=0, column=5, columnspan=4, padx=10, pady=10, sticky='w')
+        self.grid_split_seg_buttons.grid(row=3, column=3, columnspan=3, padx=20, pady=10, sticky='e')
                 
             
 
-    def reloadThread(self):
+    def reloadThread(self, url='https://app.hedgeye.com/feed_items/all?page=1&with_category=33-risk-range-signals'):
         """
-        Requests backend to fetch new data if the database is not updated with todays data.
+        Requests backend to fetch new data from the default URL if the database is not updated with todays data.
+        If a different url is given it will make a request to fetch data from that URL.
         It will then display the page that the user was on. 
         Progress bar is started and will disappear when reload is finished. 
         """
-        thread = Thread(target=self.master.initiateWebScrape, args=('Hedgeye',))
+        thread = Thread(target=self.master.initiateWebScrape, args=('Hedgeye', url,))
         thread.start()
         
         self.progress_bar.grid(row=2, column=0, columnspan=10, padx=10, sticky='ew')
         self.progress_bar.start()
+        
+        
+    def backLog(self):
+        url_dialog = ctk.CTkInputDialog(text="Please copy and paste the specific risk range signals URL into the field below and press Ok to backlog that day's data.", title='Back-Logging')
+        url = url_dialog.get_input()
+        if url:
+            self.reloadThread(url)
         
         
     def reloadPage(self, target_date=None, target_tick=None):
@@ -132,9 +153,11 @@ class HedgeyePage(ctk.CTkFrame):
             date_choice (str, optional): Date that was clicked on by user. Defaults to None.\n
             ticker_choice (str, optional): Ticker that was clicked on by user. Defaults to None.
         """
-        # Description to the right of ticker dropdown
-        description_lable = ctk.CTkLabel(self, text=description, anchor='n', font=ctk.CTkFont(weight='bold'))
-        description_lable.grid(row=1, column=5, columnspan=4, padx=10, pady=10, sticky='ew')
+        # Date dropdown box
+        date_drop_down = ctk.CTkOptionMenu(self, values=self.dates, command=self.dateAction, anchor='center')
+        if date_choice:
+            date_drop_down.set(date_choice)
+        date_drop_down.grid(row=1, column=3, padx=10, pady=10, sticky='ew')   
         
         # Ticker dropdown box
         ticker_drop_down = ctk.CTkOptionMenu(self, values=tickers, command=self.tickerAction, anchor='center')
@@ -142,11 +165,9 @@ class HedgeyePage(ctk.CTkFrame):
             ticker_drop_down.set(ticker_choice)
         ticker_drop_down.grid(row=1, column=4, padx=10, pady=10, sticky='ew')
         
-        # Date dropdown box
-        date_drop_down = ctk.CTkOptionMenu(self, values=self.dates, command=self.dateAction, anchor='center')
-        if date_choice:
-            date_drop_down.set(date_choice)
-        date_drop_down.grid(row=1, column=3, padx=10, pady=10, sticky='ew')   
+        # Description to the right of ticker dropdown
+        description_lable = ctk.CTkLabel(self, text=description, anchor='n', font=ctk.CTkFont(weight='bold'))
+        description_lable.grid(row=1, column=5, columnspan=4, padx=10, pady=10, sticky='ew')
         
         
     def drawTable(self, data):    
@@ -155,15 +176,7 @@ class HedgeyePage(ctk.CTkFrame):
         Args:\n
             data (dict): Data that is displayed on the table.
         """
-        # Top left corner positions the label and table without adjusting it individually
-        initrow = 4
-        initcol = 6
-        
-        # Table label   
-        self.table_lable = ctk.CTkEntry(self, justify='center', height=50, font=ctk.CTkFont(size=20))
-        self.table_lable.grid(row=(initrow - 1), column=initcol, columnspan=3, pady=10, sticky='ew')
-        self.table_lable.insert(ctk.END, 'Range and Performance Metrics') 
-
+        # Setting color scheme based on color mode of computer
         color_modes = {
             'dark': ('#131e23', '#373737', '#4B4B4B', 'white', '#304a54'),
             'light': ('#E5E5E5', '#F7F7F7', '#D3D3D3', 'black', '#476D7C')
@@ -181,7 +194,7 @@ class HedgeyePage(ctk.CTkFrame):
         self.top_row.insert('', 'end', text='10s/2s Spread (bps)', values=(self.data[-1]['10s/2s Spread (bps)']), tags='tt')
         self.top_row.tag_configure('tt', background=background_color, foreground=text_color)
         self.top_row.column('col1', anchor='e')
-        self.top_row.grid(row=initrow, column=initcol, columnspan=3, pady=(0, 5), sticky='nsew')
+        self.top_row.grid(row=4, column=6, columnspan=3, pady=(0, 5), sticky='nsew')
         
         # Table tree
         self.table = ttk.Treeview(self, columns=('col1',), style='my.Treeview', show='tree')
@@ -198,7 +211,7 @@ class HedgeyePage(ctk.CTkFrame):
         self.table.tag_configure('odd', background=row_color2, foreground=text_color)
         self.table.column('col1', anchor='e')
 
-        self.table.grid(row=initrow, column=initcol, columnspan=3, rowspan=9, pady=62, sticky='nsew')
+        self.table.grid(row=4, column=6, columnspan=3, rowspan=9, pady=62, sticky='nsew')
 
 
     def drawGraph(self, ticker):
@@ -206,16 +219,7 @@ class HedgeyePage(ctk.CTkFrame):
         Displays the close data for the specified ticker.\n
         Args:\n
             ticker (str): Close data that will be shown for this ticker.
-        """
-        # Top left corner positions the label and table without adjusting it individually
-        initrow = 4
-        initcol = 0
-                
-        # Graph label
-        self.graph_lable = ctk.CTkEntry(self, justify='right', height=50, font=ctk.CTkFont(size=20))
-        self.graph_lable.grid(row=(initrow - 1), column=initcol, columnspan=6, padx=10, sticky='ew')
-        self.graph_lable.insert(ctk.END, 'Trade Price Viewer             ')    
-        
+        """        
         # Setting color scheme based on color mode of computer
         color_modes = {
             'dark': ('#131e23', 'white', '#909090', '#8F8F8F'),
@@ -307,10 +311,10 @@ class HedgeyePage(ctk.CTkFrame):
         # Create the toolbar, update it, and add it to the window
         toolbar = CustomToolbar(canvas, self, self._get_appearance_mode())
         toolbar.update()
-        toolbar.grid(row=initrow - 1, column=initcol, columnspan=3, padx=20, sticky='w')
+        toolbar.grid(row=3, column=0, columnspan=4, padx=20, sticky='w')
 
         # Grid the canvas widget
-        canvas.get_tk_widget().grid(row=initrow, column=initcol, columnspan=6, rowspan=1, padx=10, sticky='nsew')
+        canvas.get_tk_widget().grid(row=4, column=0, columnspan=6, rowspan=1, padx=10, sticky='nsew')
 
         
 class CustomToolbar(NavigationToolbar2Tk):
@@ -327,4 +331,4 @@ class CustomToolbar(NavigationToolbar2Tk):
         [thing.config(background=color) for thing in self.winfo_children()]
 
         self.config(background=color)
-        self._message_label.config(foreground=fcolor, background=color, font=ctk.CTkFont(size=16))
+        self._message_label.config(foreground=fcolor, background=color, font=ctk.CTkFont(size=17))

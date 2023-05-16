@@ -10,14 +10,16 @@ import json
 
 # Functions below are the middle man between the backend and the app
 
-def updateHedgeyeTable():
+def updateHedgeyeTable(url):
     """
     Grabs data from Hedgeye's website and stores new data in the database.\n
+    Args:\n
+        url (str): Where to find the risk range data to scrape.\n
     Returns:\n
         str: If failure, error message.\n
         0: If success.
     """
-    data = fetchHedgeyeData()
+    data = fetchHedgeyeData(url)
     if type(data) == str:
         return data # Error message
 
@@ -61,17 +63,19 @@ def updateCompositeTables():
 
 
 class ThreadUpdate(Thread):
-    def __init__(self, target, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, target, args=(), kwargs={}):
+        super().__init__()
         self._target = target
+        self._args = args
+        self._kwargs = kwargs
         self._result = None
         
     def run(self):
-        """Runs thread."""
-        self._result = self._target()
+        """Runs the thread with any args."""
+        self._result = self._target(*self._args, **self._kwargs)
         
     def result(self):
-        """Returns result from threaded function."""
+        """Returns the result from the threaded function."""
         return self._result
         
         
@@ -92,9 +96,11 @@ def connectedToWiFi():
 # Functions called while interacting with the pages
     
 
-def updateDatabase():
+def updateDatabase(hedgeye_url):
     """
     Requests data from websites and handles errors for backend side.\n
+    Args:\n
+        hedgeye_url (str): Risk range signals URL of either a specified date or the newest date.\n
     Returns:\n
         list: If [0,0], then total success. Else, it will be a list of error messages.
     """
@@ -108,12 +114,14 @@ def updateDatabase():
     
     if current_time.weekday() in [5, 6]: # Do not scrape data on weekends
         return [0, 0]
-        
-    if todays_date != Hedgeye.getAllDates()[-1]:
-        thread1 = ThreadUpdate(target=updateHedgeyeTable)
+
+    # Request new data if todays date is not in the database, or the user is making a backlog request
+    if todays_date != Hedgeye.getAllDates()[-1] or hedgeye_url != 'https://app.hedgeye.com/feed_items/all?page=1&with_category=33-risk-range-signals':
+        thread1 = ThreadUpdate(target=updateHedgeyeTable, args=(hedgeye_url,))
         thread1.start()
         j1 = True
 
+    # Request new data if yesterdays date is not in the database, or (its past 4 PM and todays date is not in the database)
     if NASDAQ.getData(date=yesterdays_date) == None or (current_time.hour > 16 and NASDAQ.getData(date=todays_date) == None):
         thread2 = ThreadUpdate(target=updateCompositeTables)
         thread2.start()

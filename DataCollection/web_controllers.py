@@ -46,9 +46,11 @@ def createWaitDriver(driver):
 # -------------------------------------------------------------------------------------------------
 # Hedgeye wbsite controller functions
     
-def login():
+def login(RISK_RANGE_SIGNALS_URL):
     """
     Attempts to log into the Hedgeye website.\n
+    Args:\n
+        RISK_RANGE_SIGNALS_URL (str): URL to goto after login.\n
     Returns:\n
         selenium.webdriver: If success, returns logged in webdriver.\n
         string: If failure, returns appropriate error message.
@@ -68,7 +70,12 @@ def login():
 
     password_field.send_keys(Keys.RETURN) # Submits the login form
     
-    RISK_RANGE_SIGNALS_URL = 'https://app.hedgeye.com/feed_items/all?page=1&with_category=33-risk-range-signals'
+    if RISK_RANGE_SIGNALS_URL.find('hedgeye') == -1:
+        return 'Not a Hedgeye URL. Please backlog with a proper Hedgeye risk range signals URL. All archived risk range signal data can be found here:\n\nhttps://app.hedgeye.com/research_archives?with_category=33-risk-range-signals'
+    
+    if RISK_RANGE_SIGNALS_URL.find('feed_items') == -1:
+        return 'Invalid risk range signals URL. Please visit:\n\nhttps://app.hedgeye.com/research_archives?with_category=33-risk-range-signals\n\nand select a risk range signals data page by what date you desire to backlog.'
+    
     driver.get(RISK_RANGE_SIGNALS_URL) # Goto webpage that has the data we want
     
     if driver.current_url != RISK_RANGE_SIGNALS_URL:
@@ -78,13 +85,15 @@ def login():
     return driver
 
 
-def fetchHedgeyeData():
+def fetchHedgeyeData(RISK_RANGE_SIGNALS_URL):
     """
     Requests newest data from Hedgeye website and returns the data clean and formatted.\n
+    Args:\n
+        RISK_RANGE_SIGNALS_URL (str): URL to goto after login.\n
     Returns:\n
         list(dict): A list of dictionaries that holds information about each ticker in the risk range signals table.
     """
-    logged_in_driver = login()
+    logged_in_driver = login(RISK_RANGE_SIGNALS_URL)
     if isinstance(logged_in_driver, str):
         return logged_in_driver # Return error message from login()
 
