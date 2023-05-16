@@ -147,47 +147,27 @@ class NASDAQPage(ctk.CTkFrame):
         self.table_lable = ctk.CTkEntry(self, justify='center', height=40, font=ctk.CTkFont(size=20))
         self.table_lable.grid(row=(initrow - 1), column=initcol, columnspan=4, padx=10, pady=10, sticky='ew')
         self.table_lable.insert(ctk.END, 'Volumetric Data') 
-          
-        labels = ['Close (%)', 
-            'Advancing Volume', 'Declining Volume', 
-            'Total Volume', 'Volume Delta (%)',
-            'Upside Day (%)', 'Downside Day (%)',
-            'Advances', 'Declines', 'Net (Advances/Declines)',
-            '10-Day Breakaway Momentum', '20-Day Breakaway Momentum',
-            'Advance/Decline Ratio', 'Advance/Decline Thrust (%)',
-            '5-Day Advance/Decline Thrust (%)', '5-Day Up/Down Volume Thrust (%)', 
-            'New Highs', 'New Lows', 'Net (Highs/Lows)',
-            '21-Day Average (Highs/Lows)', '63-Day Average (Highs/Lows)']
-
-        # Setting style based on color mode
-        style = ttk.Style()
-        if self._get_appearance_mode() == 'dark':
-            background_color = '#131e23'
-            row_color = '#373737'
-            row_color2 = '#4B4B4B'
-            text_color = 'white'
-            highlight_color = '#476D7C'
-            style.configure('my.Treeview', rowheight=53, font=ctk.CTkFont(size=13), fieldbackground=background_color)
-        else:
-            background_color = '#E5E5E5'
-            row_color = '#F7F7F7'
-            row_color2 = '#D3D3D3'
-            text_color = 'black'
-            highlight_color = '#476D7C'
-            style.configure('my.Treeview', rowheight=53, font=ctk.CTkFont(size=13), fieldbackground=background_color)
+            
+        color_modes = {
+            'dark': ('#131e23', '#373737', '#4B4B4B', 'white', '#304a54'),
+            'light': ('#E5E5E5', '#F7F7F7', '#D3D3D3', 'black', '#476D7C')
+        }
+        background_color, row_color, row_color2, text_color, highlight_color = color_modes[self._get_appearance_mode()]
         
-        style.map('my.Treeview', background=[('selected', highlight_color)], foreground=[('selected', 'white')])
+        # Changing the style based on color mode
+        style = ttk.Style()
+        style.configure('my.Treeview', rowheight=53, font=ctk.CTkFont(size=13), fieldbackground=background_color)
+        style.map('my.Treeview', background=[('selected', highlight_color)], foreground=[('selected', 'white')])  
         
         # Table tree
         self.table = ttk.Treeview(self, columns=('col1',), style='my.Treeview', show='tree')
 
         # Changes when date are changed
-        for i, label in enumerate(labels):
-            d = data[label]
+        for i, label in enumerate(list(data.keys())[1:]):
             if i % 2 == 0:
-                self.table.insert('', 'end', text=label, values=[d], tags='even')
+                self.table.insert('', 'end', text=label, values=[data[label]], tags='even')
             elif i % 2 != 0:
-                self.table.insert('', 'end', text=label, values=[d], tags='odd')
+                self.table.insert('', 'end', text=label, values=[data[label]], tags='odd')
                 
         # Coloring the rows differently so the table is better contrasted
         self.table.tag_configure('even', background=row_color, foreground=text_color)

@@ -3,6 +3,7 @@ from interface import summonHedgeyeData
 import customtkinter as ctk
 from tkinter import ttk
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
 from threading import Thread
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 import matplotlib.pyplot as plt
@@ -162,30 +163,17 @@ class HedgeyePage(ctk.CTkFrame):
         self.table_lable = ctk.CTkEntry(self, justify='center', height=50, font=ctk.CTkFont(size=20))
         self.table_lable.grid(row=(initrow - 1), column=initcol, columnspan=3, pady=10, sticky='ew')
         self.table_lable.insert(ctk.END, 'Range and Performance Metrics') 
-          
-        labels = ['Buy', 'Sell', 'Close', 'Range Asym - Buy (%)', 'Range Asym - Sell (%)', 'W/W Delta', 
-                  '1-Day Delta (%)', '1-Week Delta (%)', '1-Month Delta (%)', '3-Month Delta (%)',
-                  '6-Month Delta (%)', '1-Year Delta (%)']
 
+        color_modes = {
+            'dark': ('#131e23', '#373737', '#4B4B4B', 'white', '#304a54'),
+            'light': ('#E5E5E5', '#F7F7F7', '#D3D3D3', 'black', '#476D7C')
+        }
+        background_color, row_color, row_color2, text_color, highlight_color = color_modes[self._get_appearance_mode()]
+        
         # Changing the style based on color mode
         style = ttk.Style()
-        if self._get_appearance_mode() == 'dark':
-            background_color = '#131e23'
-            row_color = '#373737'
-            row_color2 = '#4B4B4B'
-            text_color = 'white'
-            highlight_color = '#304a54'
-            style.configure('my.Treeview', rowheight=53, font=ctk.CTkFont(size=13), fieldbackground=background_color)
-        else:
-            background_color = '#E5E5E5'
-            row_color = '#F7F7F7'
-            row_color2 = '#D3D3D3'
-            text_color = 'black'
-            highlight_color = '#476D7C'
-            style.configure('my.Treeview', rowheight=53, font=ctk.CTkFont(size=13), fieldbackground=background_color)
-            
-        # Color change when clicking on the table
-        style.map('my.Treeview', background=[('selected', highlight_color)], foreground=[('selected', 'white')])
+        style.configure('my.Treeview', rowheight=53, font=ctk.CTkFont(size=13), fieldbackground=background_color)
+        style.map('my.Treeview', background=[('selected', highlight_color)], foreground=[('selected', 'white')])            
         
         # Top row tree
         self.top_row = ttk.Treeview(self, columns=('col1',), style='my.Treeview', show='tree')
@@ -198,13 +186,12 @@ class HedgeyePage(ctk.CTkFrame):
         # Table tree
         self.table = ttk.Treeview(self, columns=('col1',), style='my.Treeview', show='tree')
         
-        # Changes when ticker and date are changed
-        for i, label in enumerate(labels):
-            d = data[label]
+        # Puts the correct data in the table while excluding date, ticker, and description
+        for i, label in enumerate(list(data.keys())[3:]):
             if i % 2 == 0:
-                self.table.insert('', 'end', text=label, values=[d], tags='even')
+                self.table.insert('', 'end', text=label, values=[data[label]], tags='even')
             elif i % 2 != 0:
-                self.table.insert('', 'end', text=label, values=[d], tags='odd')
+                self.table.insert('', 'end', text=label, values=[data[label]], tags='odd')
                   
         # Coloring the rows differently so the table is better contrasted
         self.table.tag_configure('even', background=row_color, foreground=text_color)
@@ -230,24 +217,18 @@ class HedgeyePage(ctk.CTkFrame):
         self.graph_lable.insert(ctk.END, 'Trade Price Viewer             ')    
         
         # Setting color scheme based on color mode of computer
-        if self._get_appearance_mode() == 'dark':
-            face_color = '#131e23'
-            label_color = 'white'
-            close_line_color = '#C1C1C1'
-            grid_color = '#8F8F8F'
-            
-        else:
-            face_color = '#E5E5E5'
-            label_color = 'black'
-            close_line_color = 'black'
-            grid_color = 'black'
+        color_modes = {
+            'dark': ('#131e23', 'white', '#909090', '#8F8F8F'),
+            'light': ('#E5E5E5', 'black', 'black', 'black')
+        }
+        face_color, label_color, close_line_color, grid_color = color_modes[self._get_appearance_mode()]
         
-
+        # Create figure
         fig = plt.Figure(figsize=(8, 6), tight_layout=True, facecolor=face_color)
         ax = fig.add_subplot(111)
         ax.set_facecolor(face_color)
         
-        # Gets the data to be plotted
+        # Process the data summoned
         data = summonHedgeyeData(ticker=ticker)
         dates = [datetime.strptime(d['Date'], '%Y-%m-%d') for d in data[:-1]] # Excludes 10s/2s data        
         y1 = [d['Buy'] for d in data[0:-1]]
@@ -258,36 +239,29 @@ class HedgeyePage(ctk.CTkFrame):
         # ------------------------------------------------------------------------------------------------
         # Chops trend lines to show where data tracking has stopped for 7 days or longer
         
-        index_ends = []
-        index_starts = []
+        def _plotSegment(ax, dates, y_values, colors, labels, linestyles, markers, is_first_segment):
+            """Helper function to plot a line segment."""
+            for y, color, label, linestyle, marker in zip(y_values, colors, labels, linestyles, markers):
+                if is_first_segment:
+                    label = label
+                else:
+                    label = None  # Only include label for first segment
+                ax.plot_date(dates, y, color=color, label=label, linestyle=linestyle, fmt=marker)
 
-        for i in range(1, len(dates)):
-            diff = (dates[i] - dates[i - 1]).days
-            if diff >= 7:
-                index_ends.append(i - 1)
-                index_starts.append(i)            
-        
-        if len(index_ends) == 0:
-            ax.plot_date(dates, y1, 'g^', label='Buy', linestyle='-')
-            ax.plot_date(dates, y2, 'rv', label='Sell', linestyle='-')
-            ax.plot_date(dates, y3, color=close_line_color, label='Close', linestyle='--', fmt='d')
-            
-        else:
-            # First line segment
-            ax.plot_date(dates[0:index_ends[0]], y1[0:index_ends[0]], 'g^', label='Buy', linestyle='-')
-            ax.plot_date(dates[0:index_ends[0]], y2[0:index_ends[0]], 'rv', label='Sell', linestyle='-')
-            ax.plot_date(dates[0:index_ends[0]], y3[0:index_ends[0]], color=close_line_color, label='Close', linestyle='--', fmt='d')
-        
-            # Any line segment after the first and before the final segment
-            for i in range(1, len(index_ends)):
-                ax.plot_date(dates[index_starts[i-1]:index_ends[i]], y1[index_starts[i-1]:index_ends[i]], 'g^', linestyle='-')
-                ax.plot_date(dates[index_starts[i-1]:index_ends[i]], y2[index_starts[i-1]:index_ends[i]], 'rv', linestyle='-')
-                ax.plot_date(dates[index_starts[i-1]:index_ends[i]], y3[index_starts[i-1]:index_ends[i]], color=close_line_color, label='Close', linestyle='--', fmt='d')
-                
-            # Final segment
-            ax.plot_date(dates[index_starts[-1]:-1], y1[index_starts[-1]:-1], 'g^', linestyle='-')
-            ax.plot_date(dates[index_starts[-1]:-1], y2[index_starts[-1]:-1], 'rv', linestyle='-')
-            ax.plot_date(dates[index_starts[-1]:-1], y3[index_starts[-1]:-1], color=close_line_color, linestyle='--', fmt='d')
+        # Find gaps in dates larger than 7 days
+        gaps = [i for i in range(1, len(dates)) if (dates[i] - dates[i - 1]).days > 7]
+
+        # Add start and end indices
+        segments = [0] + gaps + [len(dates)]
+
+        for i, (start, end) in enumerate(zip(segments[:-1], segments[1:])):
+            is_first_segment = i == 0 # True if i == 0    
+            _plotSegment(ax, dates[start:end], [y1[start:end], y2[start:end], y3[start:end]], 
+                        colors=['green', 'red', close_line_color], 
+                        labels=['Buy', 'Sell', 'Close'], 
+                        linestyles=['-', '-', '--'], 
+                        markers=['^', 'v', 'd'],
+                        is_first_segment=is_first_segment)
         
         # ------------------------------------------------------------------------------------------------
         # This chunk of code below is for splitting up the y-axis grid lines for the segment_button
@@ -296,72 +270,61 @@ class HedgeyePage(ctk.CTkFrame):
         grid_type = self.grid_split_seg_buttons.get()
         if grid_type == 'No Y-Grid':
             ax.yaxis.grid(False)
-        elif grid_type == 'M':
-            for month in range(1, 13):
-                month_dates = [d for d in dates if d.month == month]
-                if month_dates:
-                    month_starts.append(min(month_dates))
-        elif grid_type == '3M':
-            for month in range(1, 13, 3):
-                month_dates = [d for d in dates if d.month in range(month, month+3)]
-                if month_dates:
-                    month_starts.append(min(month_dates))
-        elif grid_type == '6M':
-            for month in range(1, 13, 6):
-                month_dates = [d for d in dates if d.month in range(month, month+6)]
-                if month_dates:
-                    month_starts.append(min(month_dates))
-        elif grid_type == '1Y':
-            prev_year = None
-            for month in range(1, 2):
-                month_dates = [d for d in dates if d.month == month]
-                if month_dates:
-                    month_start = min(month_dates)
-                    if prev_year is None or month_start.year != prev_year:
-                        month_starts.append(month_start)
-                        prev_year = month_start.year
-        
-        for month_start in month_starts: 
+        else:
+            start_date = dates[0]
+            end_date = dates[-1]
+            current_date = datetime(start_date.year, start_date.month, 1)
+            
+            month_deltas = {'M': 1, '3M': 3, '6M': 6, '1Y': 12}
+            month_delta = month_deltas.get(grid_type, 1)
+            
+            while current_date <= end_date:
+                month_starts.append(current_date)
+                current_date += relativedelta(months=month_delta)
+
+        for month_start in month_starts:
             ax.axvline(month_start, linestyle='-', color=grid_color, zorder=-1, linewidth=0.8)
                 
         # ------------------------------------------------------------------------------------------------
-            
+                      
+        # Set rotation for x-axis tick labels
         for tick in ax.get_xticklabels():
             tick.set_rotation(30)
-            
-        ax.xaxis.set_major_formatter(mdates.DateFormatter('%y-%b-%d'))
-        ax.autoscale_view()
-        ax.tick_params(colors=label_color, grid_color=grid_color)
-        ax.set_xlabel('Date', color=label_color)
-        ax.set_ylabel('Price', color=label_color)
+
+        # Set properties for the axis
+        ax.xaxis.set_major_formatter(mdates.DateFormatter('%y-%b-%d'))  # Set x-axis date format
+        ax.autoscale_view()  # Automatically scale the view
+        ax.tick_params(colors=label_color, grid_color=grid_color)  # Set color parameters
+        ax.set_xlabel('Date', color=label_color)  # Set x-axis label
+        ax.set_ylabel('Price', color=label_color)  # Set y-axis label
         ax.legend()
-        ax.grid(axis='y', color=grid_color)
-        
+        ax.grid(axis='y', color=grid_color)  # Add grid lines to y-axis (if selected)
+
         # Create the canvas and draw the plot
         canvas = FigureCanvasTkAgg(fig, master=self)
         canvas.draw()
 
-        # Create the toolbar and add it to the window
+        # Create the toolbar, update it, and add it to the window
         toolbar = CustomToolbar(canvas, self, self._get_appearance_mode())
         toolbar.update()
         toolbar.grid(row=initrow - 1, column=initcol, columnspan=3, padx=20, sticky='w')
-              
+
+        # Grid the canvas widget
         canvas.get_tk_widget().grid(row=initrow, column=initcol, columnspan=6, rowspan=1, padx=10, sticky='nsew')
-        
+
         
 class CustomToolbar(NavigationToolbar2Tk):
     def __init__(self, canvas_, parent_, color_mode):
         super(CustomToolbar, self).__init__(canvas_, parent_, pack_toolbar=False)
         
-        if color_mode == 'light':
-            color = 'gray85'
-            fcolor = 'black'
-        else:
-            color = '#373737'
-            fcolor = 'white'
-            
-        for thing in self.winfo_children():
-            thing.config(background=color)
-        
+        color_modes = {
+            'light': ('gray85', 'black'),
+            'dark': ('#373737', 'white')
+        }
+
+        color, fcolor = color_modes[color_mode]
+
+        [thing.config(background=color) for thing in self.winfo_children()]
+
         self.config(background=color)
         self._message_label.config(foreground=fcolor, background=color, font=ctk.CTkFont(size=16))
