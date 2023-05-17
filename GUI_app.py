@@ -26,9 +26,7 @@ class MainApp(ctk.CTk):
         self.loading_page.grid(row=0, column=0, sticky='nsew')
         
         # After scrapping data, the Hedgeye page will be the first page shown
-        thread = Thread(target=self.initiateWebScrape, args=(
-            'Hedgeye', 
-            'https://app.hedgeye.com/feed_items/all?page=1&with_category=33-risk-range-signals',))
+        thread = Thread(target=self.initiateWebScrape, args=('Hedgeye',))
         thread.start()
     
     
@@ -72,7 +70,7 @@ class MainApp(ctk.CTk):
         self.pages[requested_page][0].grid(row=0, column=0, sticky='nsew')
 
 
-    def initiateWebScrape(self, page, hedgeye_url):
+    def initiateWebScrape(self, page, hedgeye_url='https://app.hedgeye.com/feed_items/all?page=1&with_category=33-risk-range-signals'):
         """
         Master function that grabs new information. Each page's `Reload` button calls this function.
         The page name that is passed in as a argument is the page that is shown after scrapping web data.\n
