@@ -8,6 +8,7 @@ from threading import Thread
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+import textwrap
 
 
 class HedgeyePage(ctk.CTkFrame):
@@ -266,6 +267,21 @@ class HedgeyePage(ctk.CTkFrame):
                         linestyles=['-', '-', '--'], 
                         markers=['^', 'v', 'd'],
                         is_first_segment=is_first_segment)
+
+            # Highlight gaps
+            if end < len(dates):  # Avoids index error
+                gap_start = dates[end-1]  # Last date before the gap
+                gap_end = dates[end]  # First date after the gap
+                
+                if (gap_end - gap_start).days < 25:
+                    wrap_size = 5
+                else:
+                    wrap_size = 15
+                    
+                ax.axvspan(gap_start, gap_end, color=label_color, alpha=0.4)  # Highlight gap
+                middle_gap = gap_start + (gap_end - gap_start) / 2
+                wrapped_text = textwrap.fill('No Data', width=wrap_size)  # Adjust width as necessary
+                ax.text(middle_gap, 0.5, wrapped_text, ha='center', va='center', transform=ax.get_xaxis_transform(), fontsize=14, color='white')
         
         # ------------------------------------------------------------------------------------------------
         # This chunk of code below is for splitting up the y-axis grid lines for the segment_button
