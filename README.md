@@ -33,10 +33,10 @@ where python
 ```
 
 ## Things to note - 2:
-After starting the app, if you get a popup that says "Cannot grab risk range data from Hedgeye's website. Website page has changed to something unrecognizable.", then that means hedgeye has temporarily changed the page structure. Don't freak out, it will change back to the structure that allows data to be scraped from it. They typically come out with new data every trading day at 8 AM EDT so this is a good time to grab new data.
+In `DataCollection/web_controllers.py` the function `getDriver` will try to get control drivers for Firefox or Chrome using selenium. If you do not have Firefox or Chrome installed, then please install one. Once a browser is installed, there is no further action needed. If there is a problem (rare) then look at seleniums documentation to get Firefox or Chrome to work. It might involve disabling a security feature. However, I did not have to change anything after downloading Firefox.
 
 ## Things to note - 3:
-In `DataCollection/web_controllers.py` the function `getDriver` will try to get control drivers for Firefox or Chrome using selenium. If you do not have Firefox or Chrome installed, then please install one. Once a browser is installed, there is no further action needed. If there is a problem (rare) then look at seleniums documentation to get Firefox or Chrome to work. It might involve disabling a security feature. However, I did not have to change anything after downloading Firefox.
+The app "manual" can be found in app_info.txt. While in the app, if you navigate to settings and click on "App Info", a scrollable screen will pop up giving you information on functionality and other details that a user should know.
 
 ## Using the app:
 Due to the fact that the data in my database is proprietary data from https://app.hedgeye.com, I am excluding the password, username, and user-agent data from `config.json` (this file is used to log into Hedgeye's website). I am also excluding the database that by father will be using. I will be adding an example database that will allow you to interact with the app without seeing the proprietary data (see Using The Example Database). If you would like to start collecting/viewing data from the websites specified above, follow the instructions below (everything under Creating The SQLite Database) for creating the database with the correct schemas, getting a Hedgeye subscription, and creating the `config.json` file. 
