@@ -15,8 +15,8 @@ This dropdown menu will show you all availible data by date. Data collection sta
     Tickers (dropdown menu): 
 Given the date that you are on, the dropdown menu will show what tickers Hedgeye was tracking that day. Hedgeye adds and removes tickers from time to time. So, just that a ticker is not there the next day does not mean anything is broken.
 
-    Grid Sectioning (segmented button): 
-This series of buttons will show the y-axis grid lines. You can choose to not show the y-axis grid lines or show them every: month, 3 months, 6 months, or 1 year.
+    View Sectioning (segmented button): 
+This series of buttons will show you different views of the graph. You can choose to show all data or the last: week, month, 3 months, 6 months, 1 year, or 2 years data.
 
     `Settings` (button): 
 In this settings popup, you can change your username and/or password for the Hedgeye website. If you change your username/password on the website itself, make sure to change the username/password on the app so that way it can properly log-in before getting new data.

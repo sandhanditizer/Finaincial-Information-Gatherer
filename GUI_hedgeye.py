@@ -56,10 +56,10 @@ class HedgeyePage(ctk.CTkFrame):
         self.table_lable.grid(row=3, column=6, columnspan=3, pady=10, sticky='ew')
         self.table_lable.insert(ctk.END, 'Range and Performance Metrics') 
         
-        # Month separator       
-        self.grid_split_seg_buttons = ctk.CTkSegmentedButton(self, values=['No Y-Grid', 'M', '3M', '6M', '1Y'], 
+        # View selector       
+        self.grid_split_seg_buttons = ctk.CTkSegmentedButton(self, values=['All', '1W', '1M', '3M', '6M', '1Y', '2Y'], 
                                                              command=lambda value: self.drawGraph(self.master.pages['Hedgeye'][2]))
-        self.grid_split_seg_buttons.set('No Y-Grid')
+        self.grid_split_seg_buttons.set('All')
         self.grid_split_seg_buttons.grid(row=3, column=3, columnspan=3, padx=20, pady=10, sticky='e')
                 
             
@@ -236,74 +236,50 @@ class HedgeyePage(ctk.CTkFrame):
         # Process the data summoned
         data = summonHedgeyeData(ticker=ticker)
         dates = [datetime.strptime(d['Date'], '%Y-%m-%d') for d in data[:-1]] # Excludes 10s/2s data        
-        y1 = [d['Buy'] for d in data[0:-1]]
-        y2 = [d['Sell'] for d in data[0:-1]]
-        y3 = [d['Close'] for d in data[0:-1]]
+        y1_values = [d['Buy'] for d in data[0:-1]]
+        y2_values = [d['Sell'] for d in data[0:-1]]
+        y3_values = [d['Close'] for d in data[0:-1]]
         
         
         # ------------------------------------------------------------------------------------------------
-        # Chops trend lines to show where data tracking has stopped for 7 days or longer
+        # Changes the view of the grid by the segmented button and takes care of gaps in the data
         
         def _plotSegment(ax, dates, y_values, colors, labels, linestyles, markers, is_first_segment):
             """Helper function to plot a line segment."""
             for y, color, label, linestyle, marker in zip(y_values, colors, labels, linestyles, markers):
-                if is_first_segment:
-                    label = label
-                else:
-                    label = None  # Only include label for first segment
-                ax.plot_date(dates, y, color=color, label=label, linestyle=linestyle, fmt=marker)
+                ax.plot_date(dates, y, color=color, label=label if is_first_segment else None, linestyle=linestyle, fmt=marker)
 
-        # Find gaps in dates larger than 7 days
-        gaps = [i for i in range(1, len(dates)) if (dates[i] - dates[i - 1]).days > 7]
+        week_deltas = {'All': 0, '1W': 1, '1M': 4, '3M': 12, '6M': 24, '1Y': 48, '2Y': 96}
+        button_selected = self.grid_split_seg_buttons.get() # Get the current selected button
+        week_delta = week_deltas.get(button_selected, None) # Calculate the week delta
 
-        # Add start and end indices
-        segments = [0] + gaps + [len(dates)]
+        # Set the start and end date
+        end_date = dates[-1]
+        start_date = end_date - relativedelta(weeks=week_delta)
+
+        # Filter the data
+        filtered_data = [(date, y1, y2, y3) 
+                        for date, y1, y2, y3 in zip(dates, y1_values, y2_values, y3_values) 
+                        if start_date <= date <= end_date or start_date == end_date]
+
+        # Unzip the filtered_data list into separate lists
+        filtered_dates, filtered_y1_values, filtered_y2_values, filtered_y3_values = zip(*filtered_data)
+        
+        gaps = [i for i in range(1, len(filtered_dates)) if (filtered_dates[i] - filtered_dates[i - 1]).days > 7] # Find gaps in dates larger than 7 days
+        segments = [0] + gaps + [len(filtered_dates)] # Add start and end indices
 
         for i, (start, end) in enumerate(zip(segments[:-1], segments[1:])):
             is_first_segment = i == 0 # True if i == 0    
-            _plotSegment(ax, dates[start:end], [y1[start:end], y2[start:end], y3[start:end]], 
+            _plotSegment(ax, 
+                        filtered_dates[start:end], 
+                        [filtered_y1_values[start:end], 
+                         filtered_y2_values[start:end], 
+                         filtered_y3_values[start:end]], 
                         colors=['green', 'red', close_line_color], 
                         labels=['Buy', 'Sell', 'Close'], 
                         linestyles=['-', '-', '--'], 
                         markers=['^', 'v', 'd'],
                         is_first_segment=is_first_segment)
-
-            # Highlight gaps
-            if end < len(dates):  # Avoids index error
-                gap_start = dates[end-1]  # Last date before the gap
-                gap_end = dates[end]  # First date after the gap
-                
-                if (gap_end - gap_start).days < 25:
-                    wrap_size = 5
-                else:
-                    wrap_size = 15
-                    
-                ax.axvspan(gap_start, gap_end, color=label_color, alpha=0.4)  # Highlight gap
-                middle_gap = gap_start + (gap_end - gap_start) / 2
-                wrapped_text = textwrap.fill('No Data', width=wrap_size)  # Adjust width as necessary
-                ax.text(middle_gap, 0.5, wrapped_text, ha='center', va='center', transform=ax.get_xaxis_transform(), fontsize=14, color='white')
-        
-        # ------------------------------------------------------------------------------------------------
-        # This chunk of code below is for splitting up the y-axis grid lines for the segment_button
-        
-        month_starts = []
-        grid_type = self.grid_split_seg_buttons.get()
-        if grid_type == 'No Y-Grid':
-            ax.yaxis.grid(False)
-        else:
-            start_date = dates[0]
-            end_date = dates[-1]
-            current_date = datetime(start_date.year, start_date.month, 1)
-            
-            month_deltas = {'M': 1, '3M': 3, '6M': 6, '1Y': 12}
-            month_delta = month_deltas.get(grid_type, 1)
-            
-            while current_date <= end_date:
-                month_starts.append(current_date)
-                current_date += relativedelta(months=month_delta)
-
-        for month_start in month_starts:
-            ax.axvline(month_start, linestyle='-', color=grid_color, zorder=-1, linewidth=0.8)
                 
         # ------------------------------------------------------------------------------------------------
                       
