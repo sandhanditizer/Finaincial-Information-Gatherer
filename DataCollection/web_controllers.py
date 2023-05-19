@@ -80,7 +80,7 @@ def login(RISK_RANGE_SIGNALS_URL):
     
     if driver.current_url != RISK_RANGE_SIGNALS_URL:
         driver.quit()
-        return "Cannot log into Hedgeye's website. Go into settings and make sure that your username and password are correct."
+        return "Cannot log into Hedgeye's website. Go into settings and make sure that your username and password are correct, then press `Reload Data`."
 
     return driver
 
@@ -102,7 +102,7 @@ def fetchHedgeyeData(RISK_RANGE_SIGNALS_URL):
         raw_date = wait_driver.until(EC.visibility_of_element_located((By.XPATH, '//*[starts-with(@id, "teaser_feed_item_")]/div[1]/time/span[2]'))).get_attribute('textContent')
         raw_table_data = wait_driver.until(EC.visibility_of_element_located((By.XPATH, '//*[@id="mid-col"]/div/div[1]/div/article/div/div[2]/table'))).get_attribute('textContent')
     except:
-        return "Cannot grab date or risk range data from Hedgeye's website. Website page has changed to something unrecognizable."
+        return "Hedgeye's main page changed, you will have to backlog today's data. Please visit:\n\nhttps://app.hedgeye.com/research_archives?with_category=33-risk-range-signals\n\nand select a risk range signals data page by what date you desire to backlog."
     finally:
         logged_in_driver.quit()
 
