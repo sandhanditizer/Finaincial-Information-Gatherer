@@ -8,7 +8,6 @@ from threading import Thread
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
-import textwrap
 
 
 class HedgeyePage(ctk.CTkFrame):
@@ -224,7 +223,7 @@ class HedgeyePage(ctk.CTkFrame):
         # Setting color scheme based on color mode of computer
         color_modes = {
             'dark': ('#131e23', 'white', '#909090', '#8F8F8F'),
-            'light': ('#E5E5E5', 'black', 'black', 'black')
+            'light': ('white', 'black', 'black', 'black')
         }
         face_color, label_color, close_line_color, grid_color = color_modes[self._get_appearance_mode()]
         
@@ -272,9 +271,7 @@ class HedgeyePage(ctk.CTkFrame):
             is_first_segment = i == 0 # True if i == 0    
             _plotSegment(ax, 
                         filtered_dates[start:end], 
-                        [filtered_y1_values[start:end], 
-                         filtered_y2_values[start:end], 
-                         filtered_y3_values[start:end]], 
+                        [filtered_y1_values[start:end], filtered_y2_values[start:end], filtered_y3_values[start:end]], 
                         colors=['green', 'red', close_line_color], 
                         labels=['Buy', 'Sell', 'Close'], 
                         linestyles=['-', '-', '--'], 
@@ -319,8 +316,6 @@ class CustomToolbar(NavigationToolbar2Tk):
         }
 
         color, fcolor = color_modes[color_mode]
-
         [thing.config(background=color) for thing in self.winfo_children()]
-
         self.config(background=color)
         self._message_label.config(foreground=fcolor, background=color, font=ctk.CTkFont(size=17))
