@@ -29,11 +29,11 @@ class HedgeyePage(ctk.CTkFrame):
         
         # Reload data button
         button1 = ctk.CTkButton(self, text='Reload Data', command=self.reloadThread)
-        button1.grid(row=0, column=6, padx=10, pady=10, sticky='ew')
+        button1.grid(row=0, column=6, padx=(40, 10), pady=10, sticky='ew')
         
         # Backlog data
         button4 = ctk.CTkButton(self, text='Backlog Data', command=self.backLog)
-        button4.grid(row=0, column=8, padx=10, pady=10, sticky='ew')
+        button4.grid(row=0, column=8, padx=(10, 40), pady=10, sticky='ew')
 
         # Open settings
         button5 = ctk.CTkButton(self, text='Settings', command=lambda: Settings(self.master))
@@ -179,7 +179,7 @@ class HedgeyePage(ctk.CTkFrame):
         # Setting color scheme based on color mode of computer
         color_modes = {
             'dark': ('#131e23', '#373737', '#4B4B4B', 'white', '#304a54'),
-            'light': ('#E5E5E5', '#F7F7F7', '#D3D3D3', 'black', '#476D7C')
+            'light': ('white', '#F0F0F0', '#D9D9D9', 'black', '#476D7C')
         }
         background_color, row_color, row_color2, text_color, highlight_color = color_modes[self._get_appearance_mode()]
         
@@ -207,8 +207,8 @@ class HedgeyePage(ctk.CTkFrame):
                 self.table.insert('', 'end', text=label, values=[data[label]], tags='odd')
                   
         # Coloring the rows differently so the table is better contrasted
-        self.table.tag_configure('even', background=row_color, foreground=text_color)
-        self.table.tag_configure('odd', background=row_color2, foreground=text_color)
+        self.table.tag_configure('odd', background=row_color, foreground=text_color)
+        self.table.tag_configure('even', background=row_color2, foreground=text_color)
         self.table.column('col1', anchor='e')
 
         self.table.grid(row=4, column=6, columnspan=3, rowspan=9, pady=62, sticky='nsew')
