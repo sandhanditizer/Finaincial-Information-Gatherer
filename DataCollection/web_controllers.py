@@ -67,7 +67,7 @@ def login(driver, RISK_RANGE_SIGNALS_URL):
     """
     Attempts to log into the Hedgeye website.\n
     Args:\n
-        driver (webdriver)
+        driver (webdriver): Browser driver to be logged into.\n
         RISK_RANGE_SIGNALS_URL (str): URL to goto after login.\n
     Returns:\n
         selenium.webdriver: If success, returns logged in webdriver.\n
@@ -141,6 +141,13 @@ def fetchHedgeyeData(RISK_RANGE_SIGNALS_URL):
 # Composites web controller functions
     
 def fetchMarketDiaryData(driver):
+    """
+    Requests newest WSJ market diary data for the NASDAQ and NYSE.\n
+    Args:\n
+        driver (webdriver): Webdriver used to navigate to page and collect data.\n
+    Returns:\n
+        dict: Raw data.
+    """
     raw_data = {}
     try:         
         MARKET_DIARY_URL = 'https://www.wsj.com/market-data/stocks/marketsdiary'
@@ -173,6 +180,16 @@ def fetchMarketDiaryData(driver):
 
 
 def fetchCloseData(driver, current_date, target_url, market_name):
+    """
+    Fetches the newest close data for either NYSE or NASDAQ.\n
+    Args:
+        driver (webdriver): Webdriver used to navigate to page and collect data.\n
+        current_date (str): Date in format yyyy-mm-dd that is needed for calculation the correct close.\n
+        target_url (str): URL for what website to get close data from (yahoo finance).\n
+        market_name (str): Either NASDAQ or NYSE.\n
+    Returns:\n
+        dict: Raw data.
+    """
     raw_data = {}
     try:           
         driver.get(target_url)
@@ -202,6 +219,12 @@ def fetchCloseData(driver, current_date, target_url, market_name):
 
 
 def fetchCompositeData():
+    """
+    Fetches market diary and close data, cleans the raw data, and returns a dictionary of data.\n
+    Returns:\n
+        dict: Clean data.\n
+        str: Error message.
+    """
     with getDriver() as driver:
         md_raw_data = fetchMarketDiaryData(driver)
         if isinstance(md_raw_data, str):

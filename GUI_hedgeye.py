@@ -56,7 +56,7 @@ class HedgeyePage(ctk.CTkFrame):
         self.table_lable.insert(ctk.END, 'Range and Performance Metrics') 
         
         # View selector       
-        self.grid_split_seg_buttons = ctk.CTkSegmentedButton(self, values=['All', '1W', '1M', '3M', '6M', '1Y', '2Y'], 
+        self.grid_split_seg_buttons = ctk.CTkSegmentedButton(self, values=['All', '1W', '3W', '1M', '3M', '6M', '1Y', '3Y'], 
                                                              command=lambda value: self.drawGraph(self.master.pages['Hedgeye'][2]))
         self.grid_split_seg_buttons.set('All')
         self.grid_split_seg_buttons.grid(row=3, column=3, columnspan=3, padx=20, pady=10, sticky='e')
@@ -248,7 +248,7 @@ class HedgeyePage(ctk.CTkFrame):
             for y, color, label, linestyle, marker in zip(y_values, colors, labels, linestyles, markers):
                 ax.plot_date(dates, y, color=color, label=label if is_first_segment else None, linestyle=linestyle, fmt=marker)
 
-        week_deltas = {'All': 0, '1W': 1, '1M': 4, '3M': 12, '6M': 24, '1Y': 48, '2Y': 96}
+        week_deltas = {'All': 0, '1W': 1, '3W': 3, '1M': 4, '3M': 12, '6M': 24, '1Y': 48, '3Y': 144}
         button_selected = self.grid_split_seg_buttons.get() # Get the current selected button
         week_delta = week_deltas.get(button_selected, None) # Calculate the week delta
 
