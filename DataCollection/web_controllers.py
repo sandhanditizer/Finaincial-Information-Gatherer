@@ -1,38 +1,55 @@
-from selenium.webdriver import FirefoxOptions, Firefox, ChromeOptions, Chrome
+from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from DataCollection.format import cleanData, reformatData, reformatDate
+from contextlib import contextmanager
 import json
 
 
+@contextmanager
 def getDriver():
     """
-    Creates a Selenium driver based on the available browser options (Firefox and Chrome only).\n
+    Creates a Selenium driver based on the available browser options (Edge, Firefox, and Chrome only).\n
     Returns:\n
         selenium.webdriver
     """
     browsers_supported = {
         'firefox': {
-            'driver': Firefox,
-            'options': FirefoxOptions
+            'driver': webdriver.Firefox,
+            'options': webdriver.FirefoxOptions,
+            'headless': '-headless'
+        },
+        'edge': {
+            'driver': webdriver.Edge,
+            'options': webdriver.EdgeOptions,
+            'headless': '--headless=new'
         },
         'chrome': {
-            'driver': Chrome,
-            'options': ChromeOptions
+            'driver': webdriver.Chrome,
+            'options': webdriver.ChromeOptions,
+            'headless': '--headless=new'
         }
     }
 
+    driver = None
     for _, browser_options in browsers_supported.items():
         try:
             options = browser_options['options']()
-            options.add_argument('-headless') # Prevents browser pop-up
-            return browser_options['driver'](options=options)
+            options.add_argument(browser_options['headless']) # Prevents browser pop-up
+            driver = browser_options['driver'](options=options)
+            break # Stop after the first successful driver creation
         except:
             pass
-    
-    raise ValueError('Available webdriver browsers are Firefox and Chrome.') # User does not have either browser
+
+    if driver is None:
+        raise ValueError('Available webdriver browsers are Edge, Firefox, and Chrome.')
+
+    try:
+        yield driver
+    finally:
+        driver.quit()
 
 
 def createWaitDriver(driver):
@@ -46,29 +63,31 @@ def createWaitDriver(driver):
 # -------------------------------------------------------------------------------------------------
 # Hedgeye wbsite controller functions
     
-def login(RISK_RANGE_SIGNALS_URL):
+def login(driver, RISK_RANGE_SIGNALS_URL):
     """
     Attempts to log into the Hedgeye website.\n
     Args:\n
+        driver (webdriver)
         RISK_RANGE_SIGNALS_URL (str): URL to goto after login.\n
     Returns:\n
         selenium.webdriver: If success, returns logged in webdriver.\n
         string: If failure, returns appropriate error message.
     """
-    LOGIN_URL = 'https://accounts.hedgeye.com/users/sign_in'
-    driver = getDriver()
-    driver.get(LOGIN_URL) # Goto login webpage
+    driver.get('https://accounts.hedgeye.com/users/sign_in') # Goto login webpage
     
     with open('DataCollection/config.json', 'r') as f:
         login_payload = json.load(f)
 
-    email_field = driver.find_element(By.ID, 'user_email') # Finds email field on website
-    email_field.send_keys(login_payload['Payload'][0]['username']) # Puts email address into field
+    try:
+        email_field = driver.find_element(By.ID, 'user_email') # Finds email field on website
+        email_field.send_keys(login_payload['Payload'][0]['username']) # Puts email address into field
 
-    password_field = driver.find_element(By.ID, 'user_password') # Finds password field on website
-    password_field.send_keys(login_payload['Payload'][0]['password']) # Puts password into field
+        password_field = driver.find_element(By.ID, 'user_password') # Finds password field on website
+        password_field.send_keys(login_payload['Payload'][0]['password']) # Puts password into field
 
-    password_field.send_keys(Keys.RETURN) # Submits the login form
+        password_field.send_keys(Keys.RETURN) # Submits the login form
+    except:
+        return 'An error occured while trying to enter Hedgeye credentials into user fields. Contact your son for support.'
     
     if RISK_RANGE_SIGNALS_URL.find('hedgeye') == -1:
         return 'Not a Hedgeye URL. Please backlog with a proper Hedgeye risk range signals URL. All archived risk range signal data can be found here:\n\nhttps://app.hedgeye.com/research_archives?with_category=33-risk-range-signals'
@@ -79,8 +98,7 @@ def login(RISK_RANGE_SIGNALS_URL):
     driver.get(RISK_RANGE_SIGNALS_URL) # Goto webpage that has the data we want
     
     if driver.current_url != RISK_RANGE_SIGNALS_URL:
-        driver.quit()
-        return "Cannot log into Hedgeye's website. Go into settings and make sure that your username and password are correct, then press `Reload Data`."
+        return "Couldn't navigate to risk range signals page. Go into settings and make sure that your credentials are correct, then press `Reload Data`."
 
     return driver
 
@@ -93,31 +111,30 @@ def fetchHedgeyeData(RISK_RANGE_SIGNALS_URL):
     Returns:\n
         list(dict): A list of dictionaries that holds information about each ticker in the risk range signals table.
     """
-    logged_in_driver = login(RISK_RANGE_SIGNALS_URL)
-    if isinstance(logged_in_driver, str):
-        return logged_in_driver # Return error message from login()
+    with getDriver() as driver:
+        logged_in_driver = login(driver, RISK_RANGE_SIGNALS_URL)
+        if isinstance(logged_in_driver, str):
+            return logged_in_driver # Return error message from login()
 
-    try:                
-        wait_driver = createWaitDriver(logged_in_driver)
-        raw_date = wait_driver.until(EC.visibility_of_element_located((By.XPATH, '//*[starts-with(@id, "teaser_feed_item_")]/div[1]/time/span[2]'))).get_attribute('textContent')
-        raw_table_data = wait_driver.until(EC.visibility_of_element_located((By.XPATH, '//*[@id="mid-col"]/div/div[1]/div/article/div/div[2]/table'))).get_attribute('textContent')
-    except:
-        return "Hedgeye's main page changed, you will have to backlog today's data. Please visit:\n\nhttps://app.hedgeye.com/research_archives?with_category=33-risk-range-signals\n\nand select a risk range signals data page by what date you desire to backlog."
-    finally:
-        logged_in_driver.quit()
+        try:                
+            wait_driver = createWaitDriver(logged_in_driver)
+            raw_date = wait_driver.until(EC.visibility_of_element_located((By.XPATH, '//*[starts-with(@id, "teaser_feed_item_")]/div[1]/time/span[2]'))).get_attribute('textContent')
+            raw_table_data = wait_driver.until(EC.visibility_of_element_located((By.XPATH, '//*[@id="mid-col"]/div/div[1]/div/article/div/div[2]/table'))).get_attribute('textContent')
+        except:
+            return "Hedgeye's main page changed, you will have to backlog today's data. Please visit:\n\nhttps://app.hedgeye.com/research_archives?with_category=33-risk-range-signals\n\nand select a risk range signals data page by what date you desire to backlog."
 
-    hedgeye_data = []
-    try:
-        hedgeye_data.append(reformatDate(raw_date)) # Ensures data is in format yyyy-mm-dd
-    except:
-        return "Cannot properly format Hedgeye's date data. Contact your son for support."
-    
-    try:
-        hedgeye_data.append(reformatData(raw_table_data)) # Data transforms from a string to a ordered list of dictionaries
-    except:
-        return "Cannot properly extract Hedgeye's table data. Contact your son for support."
-    
-    return hedgeye_data
+        hedgeye_data = []
+        try:
+            hedgeye_data.append(reformatDate(raw_date)) # Ensures data is in format yyyy-mm-dd
+        except:
+            return "Cannot properly format Hedgeye's date data. Contact your son for support."
+        
+        try:
+            hedgeye_data.append(reformatData(raw_table_data)) # Data transforms from a string to a ordered list of dictionaries
+        except:
+            return "Cannot properly extract Hedgeye's table data. Contact your son for support."
+        
+        return hedgeye_data
     
     
 # -------------------------------------------------------------------------------------------------
@@ -185,18 +202,18 @@ def fetchCloseData(driver, current_date, target_url, market_name):
 
 
 def fetchCompositeData():
-    driver = getDriver()
-    md_raw_data = fetchMarketDiaryData(driver)
-    nasdaq_close_raw_data = fetchCloseData(driver, md_raw_data['Date'], 'https://finance.yahoo.com/quote/%5EIXIC/history?p=%5EIXIC', 'NASDAQ')
-    nyse_close_raw_data = fetchCloseData(driver, md_raw_data['Date'], 'https://finance.yahoo.com/quote/%5ENYA/history?p=%5ENYA', 'NYSE')
-    driver.quit()
-    
-    if type(md_raw_data) == str:
-        return md_raw_data
-    elif type(nasdaq_close_raw_data) == str:
-        return nasdaq_close_raw_data
-    elif type(nyse_close_raw_data) == str:
-        return nyse_close_raw_data
+    with getDriver() as driver:
+        md_raw_data = fetchMarketDiaryData(driver)
+        if isinstance(md_raw_data, str):
+            return md_raw_data
+        
+        nasdaq_close_raw_data = fetchCloseData(driver, md_raw_data['Date'], 'https://finance.yahoo.com/quote/%5EIXIC/history?p=%5EIXIC', 'NASDAQ')
+        if isinstance(nasdaq_close_raw_data, str):
+            return nasdaq_close_raw_data
+        
+        nyse_close_raw_data = fetchCloseData(driver, md_raw_data['Date'], 'https://finance.yahoo.com/quote/%5ENYA/history?p=%5ENYA', 'NYSE')
+        if isinstance(nyse_close_raw_data, str):
+            return nyse_close_raw_data
     
     consolidated_raw_data = {**md_raw_data, **nasdaq_close_raw_data, **nyse_close_raw_data} # Merge dictionaries
     
